@@ -5,6 +5,11 @@
 /*  Vytvoril: Tym 102 - Klimecka Alena, rijen 2021                            */
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
+/*                              ! POZNAMKY !                                   
+/*        - aby slo program spravne zavolat je potreba odstranit main          
+/*                         (mam ho tu pro debug)                                               
+/*                                                                            
+/* ************************************************************************** */
 
 #include "scanner.h"
 
