@@ -8,7 +8,7 @@
 
 #include "scanner.h"
 
-int line = 1234;
+int line = 1;
 
 void lex_error(token_t *new_token, dynamic_string *string) 
 {
@@ -345,6 +345,9 @@ void get_token(token_t *new_token, dynamic_string *string)
     }
 
 }
+
+
+// main jen pro ucely debugovani
 
 int main()
 {
