@@ -6,7 +6,7 @@
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 /*                              ! POZNAMKY !                                   
-/*        - aby slo program spravne zavolat je potreba odstranit main          
+/*  - aby slo program spravne zavolat je potreba odstranit main na konci kodu          
 /*                         (mam ho tu pro debug)                                               
 /*                                                                            
 /* ************************************************************************** */
@@ -354,9 +354,10 @@ void get_token(token_t *new_token, dynamic_string *string)
 
 // main jen pro ucely debugovani
 
+/*
 int main()
 {
-    /* token 1 */
+    // token 1
 
     // inicializace
     token_t* new_token = malloc(sizeof(token_t));
@@ -380,3 +381,4 @@ int main()
     
     return 0;
 }
+*/
