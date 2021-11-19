@@ -60,3 +60,7 @@ char* string_get(dynamic_string *s) {
     // vrati retezec
     return s->data;
 }
+
+void string_delete(dynamic_string *s) {
+    s->size = 0;
+}

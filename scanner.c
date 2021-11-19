@@ -27,6 +27,7 @@ void create_operator_token(token_t *new_token, dynamic_string *string)
 {
     // nastavim typ
     new_token->type = string_get(string);
+    string_delete(string);
 
     // nastavim atribut a radek
     new_token->attribute = new_token->type;
@@ -99,6 +100,7 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     // nastavim token
     new_token->type = "id/keyword/datatype";    // musime pozdeji rozhodnout 
     new_token->attribute = string_get(string);
+    string_delete(string);
     new_token->line = line;
 
 }
@@ -127,6 +129,7 @@ void string_token(token_t *new_token,dynamic_string *string)
     // nastavim token
     new_token->type = "string";    // musime pozdeji rozhodnout 
     new_token->attribute = string_get(string);
+    string_delete(string);
     new_token->line = line;
 
 }
@@ -145,6 +148,7 @@ void make_exponent_token(token_t *new_token, dynamic_string *string) {
     // nastavim token
     new_token->type = "decimal"; 
     new_token->attribute = string_get(string);
+    string_delete(string);
     new_token->line = line; 
 }
 
@@ -206,6 +210,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
                 // nastavim token
                 new_token->type = "decimal"; 
                 new_token->attribute = string_get(string);
+                string_delete(string);
                 new_token->line = line;
             }
         }
@@ -225,6 +230,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
         // nastavim token
         new_token->type = "integer";
         new_token->attribute = string_get(string);
+        string_delete(string);
         new_token->line = line;
     }
 

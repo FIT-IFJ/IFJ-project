@@ -24,3 +24,5 @@ void string_free(dynamic_string *s);
 void string_add_char(dynamic_string *s, char d);
 // Dostanu obsah rezetce
 char* string_get(dynamic_string* s);
+// Vymazu obsah retezce
+void string_delete(dynamic_string *s);
