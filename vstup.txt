@@ -1,0 +1,4 @@
+"k\n"     parser
++8454
+
+"ahoj"
