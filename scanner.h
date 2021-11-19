@@ -10,7 +10,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "dynamic_string.c"
+#include "dynamic_string.h"
+
+
+// Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
+typedef struct {
+char* type;
+char* attribute;
+int line;
+} token_t;
 
 void lex_error(token_t *new_token, dynamic_string *string);
 void create_operator_token(token_t *new_token, dynamic_string *string);
@@ -24,11 +32,3 @@ void create_num_token(token_t *new_token, dynamic_string *string);
 void detect_block_comment();
 void detect_comment();
 void get_token(token_t *new_token, dynamic_string *string);
-
-
-// Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
-typedef struct {
-char* type;
-char* attribute;
-int line;
-} token_t;

@@ -1,10 +1,18 @@
-#include "scanner.c"
 #include <assert.h>
+#include "scanner.h"
+
 
 // id/data/keyword
 void test_id(token_t *new_token, dynamic_string *string) {
     get_token(new_token, string);
-    assert(2<1);
+    printf("%i\n",new_token->line);
+    printf("%s\n",new_token->type);
+    printf("%s\n",new_token->attribute);
+
+    get_token(new_token, string);
+    printf("%i\n",new_token->line);
+    printf("%s\n",new_token->type);
+    printf("%s\n",new_token->attribute);
     return;
 }
 
@@ -20,11 +28,6 @@ int main()
 
     // testy - posloupnost dle zadaneho vstupu
     test_id(new_token, string);
-
-    // pro ucely testovani
-    printf("%i\n",new_token->line);
-    printf("%s\n",new_token->type);
-    printf("%s\n",new_token->attribute);
 
     // po pouziti potreba uvolnit
     string_free(string);
