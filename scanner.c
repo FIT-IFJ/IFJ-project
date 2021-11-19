@@ -111,10 +111,10 @@ void general_sequence(token_t *new_token, dynamic_string *string, char c)
     string_add_char(string, c);
     if (c != '2') {
         if (new_char > 47 && new_char < 58) {
-            string_add_char(string, new_token);
+            string_add_char(string, new_char);
             new_char = getchar();
             if ((new_char > 47 && new_char < 58)) {
-                string_add_char(string, new_token);
+                string_add_char(string, new_char);
                 return;
             }
             else {
@@ -127,10 +127,10 @@ void general_sequence(token_t *new_token, dynamic_string *string, char c)
     }
     else {
         if (new_char == '5') {
-            string_add_char(string, new_token);
+            string_add_char(string, new_char);
             new_char = getchar();
             if (new_char > 47 && new_char < 54) {
-                string_add_char(string, new_token);
+                string_add_char(string, new_char);
                 return;
             }
             else {
@@ -138,10 +138,10 @@ void general_sequence(token_t *new_token, dynamic_string *string, char c)
             }
         }
         else if (new_char > 47 && new_char < 53) {
-            string_add_char(string, new_token);
+            string_add_char(string, new_char);
             new_char = getchar();
             if ((new_char > 47 && new_char < 58)) {
-                string_add_char(string, new_token);
+                string_add_char(string, new_char);
                 return;
             }
             else {
