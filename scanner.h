@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include "dynamic_string.h"
 
-
 // Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
 typedef struct {
 char* type;

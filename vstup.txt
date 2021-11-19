@@ -1,4 +1,4 @@
-parser"ifj21"
+"k\n"     parser
 +8454
 
 "ahoj"

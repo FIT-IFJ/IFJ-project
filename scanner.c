@@ -105,22 +105,93 @@ void create_word_token(token_t *new_token, dynamic_string *string)
 
 }
 
+void general_sequence(token_t *new_token, dynamic_string *string, char c)
+{
+    char new_char = getchar();
+    string_add_char(string, c);
+    if (c != '2') {
+        if (new_char > 47 && new_char < 58) {
+            string_add_char(string, new_token);
+            new_char = getchar();
+            if ((new_char > 47 && new_char < 58)) {
+                string_add_char(string, new_token);
+                return;
+            }
+            else {
+                lex_error(new_token, string);
+            }
+        }
+        else {
+            lex_error(new_token, string);
+        }
+    }
+    else {
+        if (new_char == '5') {
+            string_add_char(string, new_token);
+            new_char = getchar();
+            if (new_char > 47 && new_char < 54) {
+                string_add_char(string, new_token);
+                return;
+            }
+            else {
+                lex_error(new_token, string);
+            }
+        }
+        else if (new_char > 47 && new_char < 53) {
+            string_add_char(string, new_token);
+            new_char = getchar();
+            if ((new_char > 47 && new_char < 58)) {
+                string_add_char(string, new_token);
+                return;
+            }
+            else {
+                lex_error(new_token, string);
+            }
+        }
+        else {
+            lex_error(new_token, string);
+        }
+    }
+
+}
+
 void string_token(token_t *new_token,dynamic_string *string) 
 {
     char new_char = getchar(); 
     // nactu vsechny znaky retezce
-    while(new_char != '"'){
+    while (new_char != '"'){
         // nesmi nastat konec radku
         if (new_char == '\n') {
             lex_error(new_token, string);
         }
+        // znaky zapisuji primo
+        if (new_char > 31 && new_char != 92) {
+            string_add_char(string, new_char);
+        }
+        // escape sekvence ze zadani
+        else if (new_char == 92) {
+            string_add_char(string, new_char);
+            new_char = getchar();
+            switch (new_char)
+            {
+            // validni sekvence
+            case 110:
+            case 116:
+            case 34:
+            case 92:
+                string_add_char(string, new_char);
+                break;
+            // obecna escape sekvence
+            case '0' ... '2':
+                general_sequence(new_token, string, new_char);
+                break;
+            // v ostatnich pripadech error
+            default:
+                lex_error(new_token, string);
+                break;
+            }
+        }
 
-        // escape sekvence //
-        //    
-        // dolpnit //
-        //    
-
-        string_add_char(string, new_char);
         new_char = getchar();
     }
     // ukoncujici znak "
