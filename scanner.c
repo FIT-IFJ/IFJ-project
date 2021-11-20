@@ -7,7 +7,9 @@
 /* ************************************************************************** */
 /*                              ! POZNAMKY !                                   
 /*  - aby slo program spravne zavolat je potreba odstranit main na konci kodu          
-/*                         (mam ho tu pro debug)                                               
+/*                         (mam ho tu pro debug) 
+/*
+/*  - SPRAVNE NEFUNGUJI KLICOVA SLOVA, ID, DATATYPE                                             
 /*                                                                            
 /* ************************************************************************** */
 
@@ -26,11 +28,11 @@ void lex_error(token_t *new_token, dynamic_string *string)
 void create_operator_token(token_t *new_token, dynamic_string *string)
 {
     // nastavim typ
-    new_token->type = string_get(string);
-    string_delete(string);
+    new_token->type = TYPE_OPERATOR;
 
     // nastavim atribut a radek
-    new_token->attribute = new_token->type;
+    new_token->attribute = string_get(string);
+    string_delete(string);
     new_token->line = line;
 
 }
@@ -98,7 +100,7 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     ungetc(current, stdin);
 
     // nastavim token
-    new_token->type = "id/keyword/datatype";    // musime pozdeji rozhodnout 
+    new_token->type = TYPE_IDENTIFIER;    // musime pozdeji rozhodnout 
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -198,7 +200,7 @@ void string_token(token_t *new_token,dynamic_string *string)
     string_add_char(string, new_char);
 
     // nastavim token
-    new_token->type = "string";    // musime pozdeji rozhodnout 
+    new_token->type = TYPE_STRING;     
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -217,7 +219,7 @@ void make_exponent_token(token_t *new_token, dynamic_string *string) {
     ungetc(current, stdin);
 
     // nastavim token
-    new_token->type = "decimal"; 
+    new_token->type = TYPE_DECIMAL; 
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line; 
@@ -279,7 +281,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
             else {
                 ungetc(current, stdin);
                 // nastavim token
-                new_token->type = "decimal"; 
+                new_token->type = TYPE_DECIMAL; 
                 new_token->attribute = string_get(string);
                 string_delete(string);
                 new_token->line = line;
@@ -299,7 +301,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
     else {
         ungetc(current, stdin);
         // nastavim token
-        new_token->type = "integer";
+        new_token->type = TYPE_INTEGER;
         new_token->attribute = string_get(string);
         string_delete(string);
         new_token->line = line;
@@ -354,7 +356,12 @@ void get_token(token_t *new_token, dynamic_string *string)
     char next_char;
 
     while(true) {
-        current_char = getchar();
+        if ((current_char = getchar()) == EOF) {
+            new_token->type = TYPE_EOF;
+            new_token->attribute = "";
+            new_token->line = line;
+            return;
+        }
 
         switch (current_char)
         {

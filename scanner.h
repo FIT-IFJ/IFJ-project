@@ -12,9 +12,22 @@
 #include <stdbool.h>
 #include "dynamic_string.h"
 
+typedef enum {
+    TYPE_OPERATOR,
+    TYPE_STRING,
+    TYPE_INTEGER,
+    TYPE_DECIMAL,
+    TYPE_IDENTIFIER,
+    TYPE_KEYWORD,
+    TYPE_DATATYPE,
+    TYPE_ASSIGNMENT, // '='
+    TYPE_EOF, // konec souboru
+
+} TokenType;
+
 // Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
 typedef struct {
-char* type;
+TokenType type;
 char* attribute;
 int line;
 } token_t;
