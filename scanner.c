@@ -64,6 +64,15 @@ void token_operator_sort(token_t *new_token, dynamic_string *string, char curren
     if (current == '~' && next != '=') {
         lex_error(new_token, string);
     }
+    // vratim rovnitko
+    else if (current == '=' && next != '=') {
+        ungetc(next, stdin);
+        string_add_char(string, current);
+        new_token->type = TYPE_ASSIGNMENT;
+        new_token->attribute = string_get(string);
+        string_delete(string);
+        new_token->line = line;
+    }
     // vratim dvouznakovy token
     else if (next == '=' && current != '/') {
         string_add_char(string, current);
@@ -81,15 +90,6 @@ void token_operator_sort(token_t *new_token, dynamic_string *string, char curren
         string_add_char(string, current);
         string_add_char(string, next);
         create_operator_token(new_token, string);
-    }
-    // vratim rovnitko
-    else if (current = '=') {
-        ungetc(next, stdin);
-        string_add_char(string, current);
-        new_token->type = TYPE_ASSIGNMENT;
-        new_token->attribute = string_get(string);
-        string_delete(string);
-        new_token->line = line;
     }
     // vratim jednoznakovy token
     else {
