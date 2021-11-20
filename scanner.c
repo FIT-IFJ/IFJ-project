@@ -7,13 +7,33 @@
 /* ************************************************************************** */
 /*                              ! POZNAMKY !                                   
 /*  - aby slo program spravne zavolat je potreba odstranit main na konci kodu          
-/*                         (mam ho tu pro debug)                                               
+/*                         (mam ho tu pro debug)                                          
 /*                                                                            
 /* ************************************************************************** */
 
 #include "scanner.h"
 
 int line = 1;
+static char *keyword_table[]= {
+    "do",
+    "else",
+    "end",
+    "function",
+    "global",
+    "if",
+    "local",
+    "require",
+    "return",
+    "then",
+    "while",
+};
+static char *datatype_table[]= {
+    "number",
+    "integer",
+    "nil",
+    "string",
+
+};
 
 void lex_error(token_t *new_token, dynamic_string *string) 
 {
@@ -26,11 +46,11 @@ void lex_error(token_t *new_token, dynamic_string *string)
 void create_operator_token(token_t *new_token, dynamic_string *string)
 {
     // nastavim typ
-    new_token->type = string_get(string);
-    string_delete(string);
+    new_token->type = TYPE_OPERATOR;
 
     // nastavim atribut a radek
-    new_token->attribute = new_token->type;
+    new_token->attribute = string_get(string);
+    string_delete(string);
     new_token->line = line;
 
 }
@@ -61,6 +81,15 @@ void token_operator_sort(token_t *new_token, dynamic_string *string, char curren
         string_add_char(string, current);
         string_add_char(string, next);
         create_operator_token(new_token, string);
+    }
+    // vratim rovnitko
+    else if (current = '=') {
+        ungetc(next, stdin);
+        string_add_char(string, current);
+        new_token->type = TYPE_ASSIGNMENT;
+        new_token->attribute = string_get(string);
+        string_delete(string);
+        new_token->line = line;
     }
     // vratim jednoznakovy token
     else {
@@ -97,8 +126,31 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     // nevhodny znak vratim zpet
     ungetc(current, stdin);
 
-    // nastavim token
-    new_token->type = "id/keyword/datatype";    // musime pozdeji rozhodnout 
+    // urcim zda jde o keyword
+    for (size_t i = 0; i < 11; i++)
+    {
+        if (strcmp(keyword_table[i], string_get(string)) == 0) {
+            new_token->type = TYPE_KEYWORD;   
+            new_token->attribute = string_get(string);
+            string_delete(string);
+            new_token->line = line;
+            return;
+        }
+    }
+    // datatype
+    for (size_t i = 0; i < 4; i++)
+    {
+        if (strcmp(datatype_table[i], string_get(string)) == 0) {
+            new_token->type = TYPE_DATATYPE;   
+            new_token->attribute = string_get(string);
+            string_delete(string);
+            new_token->line = line;
+            return;
+        }
+    }
+
+    // nastavim token identifikatoru
+    new_token->type = TYPE_IDENTIFIER;   
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -198,7 +250,7 @@ void string_token(token_t *new_token,dynamic_string *string)
     string_add_char(string, new_char);
 
     // nastavim token
-    new_token->type = "string";    // musime pozdeji rozhodnout 
+    new_token->type = TYPE_STRING;     
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -217,7 +269,7 @@ void make_exponent_token(token_t *new_token, dynamic_string *string) {
     ungetc(current, stdin);
 
     // nastavim token
-    new_token->type = "decimal"; 
+    new_token->type = TYPE_DECIMAL; 
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line; 
@@ -279,7 +331,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
             else {
                 ungetc(current, stdin);
                 // nastavim token
-                new_token->type = "decimal"; 
+                new_token->type = TYPE_DECIMAL; 
                 new_token->attribute = string_get(string);
                 string_delete(string);
                 new_token->line = line;
@@ -299,7 +351,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
     else {
         ungetc(current, stdin);
         // nastavim token
-        new_token->type = "integer";
+        new_token->type = TYPE_INTEGER;
         new_token->attribute = string_get(string);
         string_delete(string);
         new_token->line = line;
@@ -354,7 +406,12 @@ void get_token(token_t *new_token, dynamic_string *string)
     char next_char;
 
     while(true) {
-        current_char = getchar();
+        if ((current_char = getchar()) == EOF) {
+            new_token->type = TYPE_EOF;
+            new_token->attribute = "";
+            new_token->line = line;
+            return;
+        }
 
         switch (current_char)
         {
