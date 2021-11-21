@@ -6,8 +6,8 @@
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 /*                              ! POZNAMKY !                                   
-/*  - aby slo program spravne zavolat je potreba odstranit main na konci kodu          
-/*                         (mam ho tu pro debug)                                          
+/*          
+/*                                                               
 /*                                                                            
 /* ************************************************************************** */
 
@@ -60,8 +60,12 @@ void token_operator_sort(token_t *new_token, dynamic_string *string, char curren
 {   
     char next = getchar();
 
-    // pokud nenasleduje po znaku '~' znak '=' nastane lexikalni chyba
+    // pokud NENASLEDUJE po znaku '~' znak '=' nastane lexikalni chyba
     if (current == '~' && next != '=') {
+        lex_error(new_token, string);
+    }
+    // pokud op znaku '.' nenasleduje '.' nastane lexikalni chyba
+    else if (current == '.' && next != '.') {
         lex_error(new_token, string);
     }
     // vratim rovnitko
@@ -359,40 +363,42 @@ void create_num_token(token_t *new_token, dynamic_string *string)
 
 }
 
-void detect_block_comment() {
+void detect_block_comment(token_t *new_token, dynamic_string *string) {
     char current = getchar();
+    int error_line = 0;
 
     // preskocim vse az po hranatou zavorku
     while (current != ']') {   
-        if (current == '\n') {
+        if (current == EOF) {
+            line -= error_line;
+            lex_error(new_token, string);
+        }
+        else if (current == '\n') {
+            error_line++;
             line++;
         }
         current = getchar();
     }
     // pokud neni ukoncen blokovy kometar
-    if (current = getchar() != ']') {
+    if ((current = getchar()) != ']') {
         // spoustim rekurzivne
-        detect_block_comment();
+        detect_block_comment(new_token, string);
     }
 }
 
-void detect_comment() {
+void detect_comment(token_t *new_token, dynamic_string *string) {
     char current = getchar();
     char next = getchar();
 
-    // konec komentare
-    if (current == '\n' || next == '\n') {
-        line++;
-        return;
-    }
     // blokovy komentar
-    else if (current == '[' && next == '[') {
-        detect_block_comment();
+    if (current == '[' && next == '[') {
+        detect_block_comment(new_token, string);
         return;
     }
     // radkovy komentar
     else {
-        while(current != '\n') {
+        ungetc(next, stdin);
+        while(current != '\n' && current != EOF) {
             current = getchar();
         }
         line++;
@@ -424,6 +430,7 @@ void get_token(token_t *new_token, dynamic_string *string)
 
         // konec hned po prvnim znaku
         case ':':
+        case ',':
         case '*':
         case '(':
         case ')':
@@ -460,7 +467,7 @@ void get_token(token_t *new_token, dynamic_string *string)
         // operator minus / komentar
         case '-':
             // je operator '-'
-            if (next_char = getchar() != '-') {
+            if ((next_char = getchar()) != '-') {
                 string_add_char(string, current_char);
                 ungetc(next_char, stdin);
                 create_operator_token(new_token, string);
@@ -468,7 +475,7 @@ void get_token(token_t *new_token, dynamic_string *string)
             }
             // je komentar
             else {
-                detect_comment();
+                detect_comment(new_token, string);
             }
             break;
 
@@ -480,39 +487,5 @@ void get_token(token_t *new_token, dynamic_string *string)
         default:
             break;
         }
-    
     }
-
 }
-
-
-// main jen pro ucely debugovani
-
-/*
-int main()
-{
-    // token 1
-
-    // inicializace
-    token_t* new_token = malloc(sizeof(token_t));
-    if(new_token == NULL) {
-        fprintf(stderr, "Memory allocation error\n");
-        exit(99);
-    }
-    dynamic_string *string = string_init();
-
-    // nacte info k aktualnimu tokenu do new_token
-    get_token(new_token, string);
-
-    // pro ucely testovani
-    printf("%i\n",new_token->line);
-    printf("%s\n",new_token->type);
-    printf("%s\n",new_token->attribute);
-
-    // po pouziti potreba uvolnit
-    string_free(string);
-    free(new_token);
-    
-    return 0;
-}
-*/
