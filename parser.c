@@ -8,8 +8,6 @@
 
 
 
-
-
 // docasna nahrada hlavneho parseru pre debugovanie PSA
 int main()
 {
@@ -22,32 +20,41 @@ int main()
     }
     dynamic_string *string = string_init();
 
+    get_token(new_token, string);
+     //parser spracuje prvy token   #############################
+    printf("parser processing      '%s'\n", new_token->attribute);
+
 
     while(new_token->type != TYPE_EOF)
     {
 
-        get_token(new_token, string);
-
         //spracuva "=", "if", "while", "return"
-        if (new_token->type == TYPE_ASSIGNMENT || strcmp(new_token->attribute,"if") == 0  ||  strcmp(new_token->attribute,"while") == 0  ||  strcmp(new_token->attribute,"return") == 0)
+        if (new_token->type == TYPE_ASSIGNMENT || strcmp(new_token->attribute,"if") == 0  || \
+                strcmp(new_token->attribute,"while") == 0  ||  strcmp(new_token->attribute,"return") == 0)
         {
-            printf("parser processing      '%s'\n", new_token->attribute);    //spracuj token z podmienky (=,if,while,return)     #############################
-            
+
             printf("\n\n******* expression *******\n");
-            int res = parse_expression(new_token, string, tmp_token);   //new_token obsahuje podozrivy token pre zaciatok vyrazu a na obsahu tmp_token nezalezi az pokial podozrenie nebolo vyvratene -> res == 1, v tmp_token sa vracia predosly token 
+       //new_token obsahuje podozrivy token pre zaciatok vyrazu a tmp_token je lubovolny, psa ho plni predoslym tokenom
+            int res = parse_expression(new_token, string, tmp_token);
             printf("\n\n******* parser *******\n");
 
             if(res == 0);   // pokracuje s new_token po uspesnom spracovani vyrazu
             else if (res == 1)
             {
-                printf("parser processing      '%s'\n", tmp_token->attribute);    //spracuje omylom vybraty token  (nazov funckie) #############################
+                //parser spracuje omylom vybraty token  (nazov funckie) #############################
+                printf("parser processing      '%s'\n", tmp_token->attribute);
             }
             else
                 exit(res);
         
         }
-        printf("parser processing      '%s'\n", new_token->attribute);   //spracuje new_token                                    #############################
+        else
+        {
+            get_token(new_token, string);
+        }
 
+        //parser spracuje new_token                                    #############################
+        printf("parser processing      '%s'\n", new_token->attribute);
 
 
     }

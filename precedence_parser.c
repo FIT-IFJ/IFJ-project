@@ -284,13 +284,13 @@ int parse_expression(token_t *token, dynamic_string *string, token_t *tmp_token)
 {
     int stack_n;        // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
     int token_n;        // hodnota na aktualneho tokenu (prava strana suradnice vramci tabulky)
-
-    int op_count = 0;   // pocitadlo operandov
     int count = 0;
 
     get_token(token, string);
+
     if (token->type == TYPE_KEYWORD)
         return 0;
+
     while (token->type != TYPE_EOF)
     {
         count++;
@@ -308,23 +308,17 @@ int parse_expression(token_t *token, dynamic_string *string, token_t *tmp_token)
         if (tmp_token->type == TYPE_IDENTIFIER ||  tmp_token->type == TYPE_STRING || tmp_token->type == TYPE_DECIMAL || tmp_token->type == TYPE_INTEGER)  // token moze byt operand !!pozor zatvorky
         {   
             token_n = IDOP;
-           // op_count++;
         }
         else if (tmp_token->type == TYPE_OPERATOR)
         {
             token_n = convert(tmp_token->attribute);    //token_n = token->type_code
-            //op_count = 0;
         }
-
-
 
 
 
 
 
         printf("expression   '%s'    (code %d)\n",tmp_token->attribute ,token_n);   //tu spracovavam token
-
-
 
 
 
