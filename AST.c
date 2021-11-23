@@ -8,7 +8,8 @@ typedef enum {
     assign_id,
     if_id,
     variable_id,
-    function_id
+    function_id,
+    constant_id
     // ...possibly other types
 } type_id;
 
