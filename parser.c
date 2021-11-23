@@ -1,7 +1,9 @@
-/* ******************************* parser.c ********************************* */
-/*  IFJ projekt  - FIT VUT v Brně                                             */
-/*  Parser                                                                    */
-/*  Vytvořil: Tadeáš Kozub                                                    */
+/* ******************************* parser.c ******************************** */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Syntakticky a sematicky analyzator                                  */
+/*  Vytvoril: Tym 102 - Kozub Tadeas, listopad 2021                           */
+/*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 
 #include <string.h>
