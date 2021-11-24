@@ -48,54 +48,54 @@ void create_operator_token(token_t *new_token, dynamic_string *string)
     // nastavim typ
     new_token->type = TYPE_OPERATOR;
 
-    // nastavim symbol 
+    // nastavim spec 
     if (!strcmp(string_get(string), "+")) {
-        new_token->symbol = SYMBOL_PLUS;
+        new_token->spec = SPEC_PLUS;
     }
     else if (!strcmp(string_get(string), "-")) {
-        new_token->symbol = SYMBOL_MINU;
+        new_token->spec = SPEC_MINU;
     }
     else if (!strcmp(string_get(string), "*")) {
-        new_token->symbol = SYMBOL_MULT;
+        new_token->spec = SPEC_MULT;
     }
     else if (!strcmp(string_get(string), "/")) {
-        new_token->symbol = SYMBOL_DIVF;
+        new_token->spec = SPEC_DIVF;
     }
     else if (!strcmp(string_get(string), "//")) {
-        new_token->symbol = SYMBOL_DIVI;
+        new_token->spec = SPEC_DIVI;
     }
     else if (!strcmp(string_get(string), "<")) {
-        new_token->symbol = SYMBOL_LESS;
+        new_token->spec = SPEC_LESS;
     }
     else if (!strcmp(string_get(string), "<=")) {
-        new_token->symbol = SYMBOL_LEEQ;
+        new_token->spec = SPEC_LEEQ;
     }
     else if (!strcmp(string_get(string), ">")) {
-        new_token->symbol = SYMBOL_GREA;
+        new_token->spec = SPEC_GREA;
     }
     else if (!strcmp(string_get(string), ">=")) {
-        new_token->symbol = SYMBOL_GREQ;
+        new_token->spec = SPEC_GREQ;
     }
     else if (!strcmp(string_get(string), "==")) {
-        new_token->symbol = SYMBOL_EQUA;
+        new_token->spec = SPEC_EQUA;
     }
     else if (!strcmp(string_get(string), "~=")) {
-        new_token->symbol = SYMBOL_NOEQ;
+        new_token->spec = SPEC_NOEQ;
     }
     else if (!strcmp(string_get(string), "..")) {
-        new_token->symbol = SYMBOL_CONC;
+        new_token->spec = SPEC_CONC;
     }
     else if (!strcmp(string_get(string), "#")) {
-        new_token->symbol = SYMBOL_HASH;
+        new_token->spec = SPEC_HASH;
     }
     else if (!strcmp(string_get(string), "(")) {
-        new_token->symbol = SYMBOL_OPEN;
+        new_token->spec = SPEC_OPEN;
     }
     else if (!strcmp(string_get(string), ")")) {
-        new_token->symbol = SYMBOL_CLOS;
+        new_token->spec = SPEC_CLOS;
     }
     else {
-        new_token->symbol = SYMBOL_OTHERS;
+        new_token->spec = SPEC_OTHERS;
     }
 
     // nastavim atribut a radek
@@ -123,7 +123,7 @@ void token_operator_sort(token_t *new_token, dynamic_string *string, char curren
         ungetc(next, stdin);
         string_add_char(string, current);
         new_token->type = TYPE_ASSIGNMENT;
-        new_token->symbol = SYMBOL_OTHERS;
+        new_token->spec = SPEC_OTHERS;
         new_token->attribute = string_get(string);
         string_delete(string);
         new_token->line = line;
@@ -169,6 +169,50 @@ bool is_valid_char(char c)
         return false;
 }
 
+void detail_spec(token_t *new_token, int num)
+{
+    switch (num)
+    {
+    case 0:
+        new_token->spec = SPEC_DO;
+        break;
+    case 1:
+        new_token->spec = SPEC_ELSE;
+        break;
+    case 2:
+        new_token->spec = SPEC_END;
+        break;
+    case 3:
+        new_token->spec = SPEC_FUNCTION;
+        break;
+    case 4:
+        new_token->spec = SPEC_GLOBAL;
+        break;
+    case 5:
+        new_token->spec = SPEC_IF;
+        break;
+    case 6:
+        new_token->spec = SPEC_LOCAL;
+        break;
+    case 7:
+        new_token->spec = SPEC_REQUIRE;
+        break;
+    case 8:
+        new_token->spec = SPEC_RETURN;
+        break;
+    case 9:
+        new_token->spec = SPEC_THEN;
+        break;
+    case 10:
+        new_token->spec = SPEC_WHILE;
+        break;
+    default:
+        new_token->spec = SPEC_OTHERS;
+        break;
+    }
+    
+}
+
 void create_word_token(token_t *new_token, dynamic_string *string) 
 {
     char current;
@@ -186,7 +230,7 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     {
         if (strcmp(keyword_table[i], string_get(string)) == 0) {
             new_token->type = TYPE_KEYWORD;
-            new_token->symbol = SYMBOL_OTHERS;   
+            detail_spec(new_token, i); 
             new_token->attribute = string_get(string);
             string_delete(string);
             new_token->line = line;
@@ -198,7 +242,21 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     {
         if (strcmp(datatype_table[i], string_get(string)) == 0) {
             new_token->type = TYPE_DATATYPE;   
-            new_token->symbol = SYMBOL_OTHERS;
+            switch (i)
+            {
+            case 0:
+                new_token->spec = SPEC_NUMBER;
+                break;
+            case 1:
+                new_token->spec = SPEC_INTEGER;
+                break;
+            case 2:
+                new_token->spec = SPEC_NIL;
+                break;
+            case 3:
+                new_token->spec = SPEC_STRING;
+                break;
+            }
             new_token->attribute = string_get(string);
             string_delete(string);
             new_token->line = line;
@@ -208,7 +266,7 @@ void create_word_token(token_t *new_token, dynamic_string *string)
 
     // nastavim token identifikatoru
     new_token->type = TYPE_IDENTIFIER;   
-    new_token->symbol = SYMBOL_IDOP;
+    new_token->spec = SPEC_IDOP;
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -309,7 +367,7 @@ void string_token(token_t *new_token,dynamic_string *string)
 
     // nastavim token
     new_token->type = TYPE_STRING;   
-    new_token->symbol = SYMBOL_IDOP;  
+    new_token->spec = SPEC_IDOP;  
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -329,7 +387,7 @@ void make_exponent_token(token_t *new_token, dynamic_string *string) {
 
     // nastavim token
     new_token->type = TYPE_DECIMAL; 
-    new_token->symbol = SYMBOL_IDOP;
+    new_token->spec = SPEC_IDOP;
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line; 
@@ -392,7 +450,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
                 ungetc(current, stdin);
                 // nastavim token
                 new_token->type = TYPE_DECIMAL; 
-                new_token->symbol = SYMBOL_IDOP;
+                new_token->spec = SPEC_IDOP;
                 new_token->attribute = string_get(string);
                 string_delete(string);
                 new_token->line = line;
@@ -413,7 +471,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
         ungetc(current, stdin);
         // nastavim token
         new_token->type = TYPE_INTEGER;
-        new_token->symbol = SYMBOL_IDOP;
+        new_token->spec = SPEC_IDOP;
         new_token->attribute = string_get(string);
         string_delete(string);
         new_token->line = line;
@@ -472,7 +530,7 @@ void get_token(token_t *new_token, dynamic_string *string)
     while(true) {
         if ((current_char = getchar()) == EOF) {
             new_token->type = TYPE_EOF;
-            new_token->symbol = SYMBOL_OTHERS;
+            new_token->spec = SPEC_OTHERS;
             new_token->attribute = "";
             new_token->line = line;
             return;
