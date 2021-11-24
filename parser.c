@@ -107,14 +107,13 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
     moveAhead(token, token_lookahead, string);
     if (token->type == TYPE_DATATYPE)
     {
-        //result = type_list();
+        result = type_list(token, token_lookahead, string);
         // do nothing for now
     }
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ")"))
     {
-        //result = type_list();
-        // do nothing for now
+        return FAILURE;
     }
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ":"))
@@ -127,7 +126,7 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
         //result = type_list();
         // do nothing for now
     }
-    result = 1; // FOR DEBUGGING PURPOSES
+    //result = 1; // FOR DEBUGGING PURPOSES
     return result;
 
 }
@@ -141,4 +140,25 @@ int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string){
         moveAhead(token, token_lookahead, string);
     }
     return SUCCESS;
+}
+int type_list(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    return type(token, token_lookahead, string) && types(token, token_lookahead, string);
+}
+int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    if (!strcmp(token_lookahead->attribute, ")")){
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ",")){
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    return type(token, token_lookahead, string) && types(token, token_lookahead, string);
+
+}
+int type(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    if (token->type == TYPE_DATATYPE){
+        return SUCCESS;
+    }
+    return FAILURE;
 }
