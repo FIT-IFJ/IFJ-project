@@ -26,29 +26,49 @@ typedef enum {
 } TokenType;
 
 typedef enum {
-    SYMBOL_PLUS,  // '+' 
-    SYMBOL_MINU,  // '-' 
-    SYMBOL_MULT,  // '*' 
-    SYMBOL_DIVF,  // '/'  
-    SYMBOL_DIVI,  // '//' 
-    SYMBOL_LESS,  // '<'  
-    SYMBOL_LEEQ,  // '<='
-    SYMBOL_GREA,  // '>'  
-    SYMBOL_GREQ,  // '>='
-    SYMBOL_EQUA,  // '=='
-    SYMBOL_NOEQ,  // '~='
-    SYMBOL_CONC,  // '..' 
-    SYMBOL_HASH,  // '#' 
-    SYMBOL_IDOP,  // pomecne i
-    SYMBOL_OPEN,  // '(' 
-    SYMBOL_CLOS,  // ')' 
-    SYMBOL_OTHERS, // ostatni
-} Symbols;
+    SPEC_PLUS,  // '+' 
+    SPEC_MINU,  // '-' 
+    SPEC_MULT,  // '*' 
+    SPEC_DIVF,  // '/'  
+    SPEC_DIVI,  // '//' 
+    SPEC_LESS,  // '<'  
+    SPEC_LEEQ,  // '<='
+    SPEC_GREA,  // '>'  
+    SPEC_GREQ,  // '>='
+    SPEC_EQUA,  // '=='
+    SPEC_NOEQ,  // '~='
+    SPEC_CONC,  // '..' 
+    SPEC_HASH,  // '#' 
+    SPEC_IDOP,  // pomecne i
+    SPEC_OPEN,  // '(' 
+    SPEC_CLOS,  // ')' 
+
+    // KEYWORDS
+    SPEC_DO,
+    SPEC_ELSE,
+    SPEC_END,
+    SPEC_FUNCTION,
+    SPEC_GLOBAL,
+    SPEC_IF,   
+    SPEC_LOCAL,
+    SPEC_REQUIRE,  
+    SPEC_RETURN, 
+    SPEC_THEN, 
+    SPEC_WHILE,
+
+    // DATATYPE
+    SPEC_NUMBER,
+    SPEC_INTEGER,
+    SPEC_NIL,
+    SPEC_STRING,
+
+    SPEC_OTHERS, // ostatni
+} Specification;
 
 // Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
 typedef struct {
 TokenType type;
-Symbols symbol;
+Specification spec;
 char* attribute;
 int line;
 } token_t;
@@ -57,6 +77,7 @@ void lex_error(token_t *new_token, dynamic_string *string);
 void create_operator_token(token_t *new_token, dynamic_string *string);
 void token_operator_sort(token_t *new_token, dynamic_string *string, char current);
 bool is_valid_char(char c);
+void detail_spec(token_t *new_token, int num);
 void create_word_token(token_t *new_token, dynamic_string *string);
 void general_sequence(token_t *new_token, dynamic_string *string, char c);
 void string_token(token_t *new_token,dynamic_string *string);
