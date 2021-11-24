@@ -48,6 +48,56 @@ void create_operator_token(token_t *new_token, dynamic_string *string)
     // nastavim typ
     new_token->type = TYPE_OPERATOR;
 
+    // nastavim symbol 
+    if (!strcmp(string_get(string), "+")) {
+        new_token->symbol = SYMBOL_PLUS;
+    }
+    else if (!strcmp(string_get(string), "-")) {
+        new_token->symbol = SYMBOL_MINU;
+    }
+    else if (!strcmp(string_get(string), "*")) {
+        new_token->symbol = SYMBOL_MULT;
+    }
+    else if (!strcmp(string_get(string), "/")) {
+        new_token->symbol = SYMBOL_DIVF;
+    }
+    else if (!strcmp(string_get(string), "//")) {
+        new_token->symbol = SYMBOL_DIVI;
+    }
+    else if (!strcmp(string_get(string), "<")) {
+        new_token->symbol = SYMBOL_LESS;
+    }
+    else if (!strcmp(string_get(string), "<=")) {
+        new_token->symbol = SYMBOL_LEEQ;
+    }
+    else if (!strcmp(string_get(string), ">")) {
+        new_token->symbol = SYMBOL_GREA;
+    }
+    else if (!strcmp(string_get(string), ">=")) {
+        new_token->symbol = SYMBOL_GREQ;
+    }
+    else if (!strcmp(string_get(string), "==")) {
+        new_token->symbol = SYMBOL_EQUA;
+    }
+    else if (!strcmp(string_get(string), "~=")) {
+        new_token->symbol = SYMBOL_NOEQ;
+    }
+    else if (!strcmp(string_get(string), "..")) {
+        new_token->symbol = SYMBOL_CONC;
+    }
+    else if (!strcmp(string_get(string), "#")) {
+        new_token->symbol = SYMBOL_HASH;
+    }
+    else if (!strcmp(string_get(string), "(")) {
+        new_token->symbol = SYMBOL_OPEN;
+    }
+    else if (!strcmp(string_get(string), ")")) {
+        new_token->symbol = SYMBOL_CLOS;
+    }
+    else {
+        new_token->symbol = SYMBOL_OTHERS;
+    }
+
     // nastavim atribut a radek
     new_token->attribute = string_get(string);
     string_delete(string);
@@ -73,6 +123,7 @@ void token_operator_sort(token_t *new_token, dynamic_string *string, char curren
         ungetc(next, stdin);
         string_add_char(string, current);
         new_token->type = TYPE_ASSIGNMENT;
+        new_token->symbol = SYMBOL_OTHERS;
         new_token->attribute = string_get(string);
         string_delete(string);
         new_token->line = line;
@@ -134,7 +185,8 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     for (size_t i = 0; i < 11; i++)
     {
         if (strcmp(keyword_table[i], string_get(string)) == 0) {
-            new_token->type = TYPE_KEYWORD;   
+            new_token->type = TYPE_KEYWORD;
+            new_token->symbol = SYMBOL_OTHERS;   
             new_token->attribute = string_get(string);
             string_delete(string);
             new_token->line = line;
@@ -146,6 +198,7 @@ void create_word_token(token_t *new_token, dynamic_string *string)
     {
         if (strcmp(datatype_table[i], string_get(string)) == 0) {
             new_token->type = TYPE_DATATYPE;   
+            new_token->symbol = SYMBOL_OTHERS;
             new_token->attribute = string_get(string);
             string_delete(string);
             new_token->line = line;
@@ -155,6 +208,7 @@ void create_word_token(token_t *new_token, dynamic_string *string)
 
     // nastavim token identifikatoru
     new_token->type = TYPE_IDENTIFIER;   
+    new_token->symbol = SYMBOL_IDOP;
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -254,7 +308,8 @@ void string_token(token_t *new_token,dynamic_string *string)
     string_add_char(string, new_char);
 
     // nastavim token
-    new_token->type = TYPE_STRING;     
+    new_token->type = TYPE_STRING;   
+    new_token->symbol = SYMBOL_IDOP;  
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line;
@@ -274,6 +329,7 @@ void make_exponent_token(token_t *new_token, dynamic_string *string) {
 
     // nastavim token
     new_token->type = TYPE_DECIMAL; 
+    new_token->symbol = SYMBOL_IDOP;
     new_token->attribute = string_get(string);
     string_delete(string);
     new_token->line = line; 
@@ -336,6 +392,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
                 ungetc(current, stdin);
                 // nastavim token
                 new_token->type = TYPE_DECIMAL; 
+                new_token->symbol = SYMBOL_IDOP;
                 new_token->attribute = string_get(string);
                 string_delete(string);
                 new_token->line = line;
@@ -356,6 +413,7 @@ void create_num_token(token_t *new_token, dynamic_string *string)
         ungetc(current, stdin);
         // nastavim token
         new_token->type = TYPE_INTEGER;
+        new_token->symbol = SYMBOL_IDOP;
         new_token->attribute = string_get(string);
         string_delete(string);
         new_token->line = line;
@@ -414,6 +472,7 @@ void get_token(token_t *new_token, dynamic_string *string)
     while(true) {
         if ((current_char = getchar()) == EOF) {
             new_token->type = TYPE_EOF;
+            new_token->symbol = SYMBOL_OTHERS;
             new_token->attribute = "";
             new_token->line = line;
             return;
