@@ -1,2 +1,2 @@
-require "ifj21" 
+require "ifj21"
 print("hello world!")

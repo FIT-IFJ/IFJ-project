@@ -38,15 +38,12 @@ int prologue(token_t* token, dynamic_string* string){
     {
         get_token(token, string);
         printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
-        if (!strcmp(token->attribute, "̈́\"ifj21\"")) 
+        if (!strcmp(token->attribute, "\"ifj21\""))
         {
             return SUCCESS;
-        }
-        else
-        {
-            return FAILURE;
-        } 
+        }       
     }
+    return FAILURE;
     
 }
 int program_body(token_t* token, dynamic_string* string){
