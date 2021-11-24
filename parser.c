@@ -67,17 +67,17 @@ int program_body(token_t* token, token_t* token_lookahead, dynamic_string* strin
         // <program_body> -> e
         return SUCCESS;
     }
-    if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "global")))
+    else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "global")))
     {
         // <program_body> -> <func_decl><program_body>
         return func_decl(token, token_lookahead, string) && program_body(token, token_lookahead, string);
     }
-    if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "function")))
+    else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "function")))
     {
         // <program_body> -> <func_def><program_body>
         return func_def(token, token_lookahead, string) && program_body(token, token_lookahead, string);
     }
-    if ((token->type == TYPE_IDENTIFIER) && (token_lookahead->type == TYPE_OPERATOR) && (!strcmp(token_lookahead->attribute, "(")))
+    else if ((token->type == TYPE_IDENTIFIER) && (token_lookahead->type == TYPE_OPERATOR) && (!strcmp(token_lookahead->attribute, "(")))
     {
         // <program_body> -> <func_call><program_body>
         return func_call(token, token_lookahead, string) && program_body(token, token_lookahead, string);
@@ -121,8 +121,8 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
     {
         return FAILURE;
     }
-    moveAhead(token, token_lookahead, string);
-    if (token->type == TYPE_DATATYPE)
+    //moveAhead(token, token_lookahead, string);
+    if (token_lookahead->type == TYPE_DATATYPE)
     {
         //result = type_list();
         // do nothing for now
@@ -135,5 +135,10 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string){
     return SUCCESS;
 }
 int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    // FOR DEBUGGING PURPOSES, the while loop gets rid of all the tokens
+    while (strcmp(token_lookahead->attribute, ")"))
+    {
+        moveAhead(token, token_lookahead, string);
+    }
     return SUCCESS;
 }
