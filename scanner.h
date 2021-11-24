@@ -25,9 +25,30 @@ typedef enum {
 
 } TokenType;
 
+typedef enum {
+    SYMBOL_PLUS,  // '+' 
+    SYMBOL_MINU,  // '-' 
+    SYMBOL_MULT,  // '*' 
+    SYMBOL_DIVF,  // '/'  
+    SYMBOL_DIVI,  // '//' 
+    SYMBOL_LESS,  // '<'  
+    SYMBOL_LEEQ,  // '<='
+    SYMBOL_GREA,  // '>'  
+    SYMBOL_GREQ,  // '>='
+    SYMBOL_EQUA,  // '=='
+    SYMBOL_NOEQ,  // '~='
+    SYMBOL_CONC,  // '..' 
+    SYMBOL_HASH,  // '#' 
+    SYMBOL_IDOP,  // pomecne i
+    SYMBOL_OPEN,  // '(' 
+    SYMBOL_CLOS,  // ')' 
+    SYMBOL_OTHERS, // ostatni
+} Symbols;
+
 // Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
 typedef struct {
 TokenType type;
+Symbols symbol;
 char* attribute;
 int line;
 } token_t;
