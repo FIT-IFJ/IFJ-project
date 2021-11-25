@@ -43,7 +43,8 @@ void test_general(token_t *new_token, dynamic_string *string) {
 
     printf("%s  ", typ);
     printf("|  %s  ", new_token->attribute);
-    printf("|  %i  \n", new_token->line);
+    printf("|  %i  ", new_token->line);
+    printf("|  %i  \n", new_token->spec);
     return;
 }
 
