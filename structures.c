@@ -252,7 +252,7 @@ void DLL_DeleteBefore( DLList *list )
 }
 
 
-void DLL_InsertAfter( DLList *list, token_t *token )     // pre parser na posunutie tokenu
+void DLL_InsertAfter( DLList *list, token_t *token )
 {
 
     if (list->active != NULL)    
@@ -415,21 +415,21 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
         DLL_InsertLast(pp_list, token);
 
          //ak nasleduje keyword, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
-        if (token->type == TYPE_KEYWORD || token->type == TYPE_DATATYPE)     
+        if (pp_list->last->token->type == TYPE_KEYWORD || pp_list->last->token->type == TYPE_DATATYPE)     
         {
             DLL_to_DLL(pp_list, list, token);
             break;
         }
-        else if( list->last->prev != NULL )
+        else if( pp_list->last->prev != NULL )
         {
              //ak nasleduje dalsi identifier bez znamienka medzi nimi, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
-            if (token->type == TYPE_IDENTIFIER && list->last->prev->token->type == TYPE_IDENTIFIER)
+            if (pp_list->last->token->type == TYPE_IDENTIFIER && pp_list->last->prev->token->type == TYPE_IDENTIFIER)
             {
                 DLL_to_DLL(pp_list, list, token);
                 break;
             }
              //ak nasleduje funkcia, tak vymaze posledne dva tokeny a vlozi ho do listu pre hlavny parser
-            else if (token->spec == SPEC_OPEN && list->last->prev->token->type == TYPE_IDENTIFIER)
+            else if (pp_list->last->token->spec == SPEC_OPEN && pp_list->last->prev->token->type == TYPE_IDENTIFIER)
             {
                 DLL_to_DLL(pp_list, list, token);
                 DLL_to_DLL(pp_list, list, token);
