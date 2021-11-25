@@ -153,6 +153,10 @@ int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     if (!strcmp(token_lookahead->attribute, ")")){
         return SUCCESS;
     }
+    if (token_lookahead->type != TYPE_DATATYPE)
+    {
+        return SUCCESS;
+    }
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ",")){
         return FAILURE;
@@ -211,15 +215,24 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     if (!strcmp(token_lookahead->attribute, ":"))
     {
         // jestli je v lookaheadu dvojtecka, tak uzivatel specifikuje return values -> musim zkontrolovat type:list
+        moveAhead(token, token_lookahead, string);
+        moveAhead(token, token_lookahead, string);
         result = result && type_list(token, token_lookahead, string);
     }
+    // zde bude kontrola func_body
     if (!strcmp(token_lookahead->attribute, "end")){
-        return SUCCESS;
+        // hardcoded for testing
+        return result;
     }
     return result;
 }
 
 int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    if (!strcmp(token_lookahead->attribute, ")"))
+    {
+        // epsilon pravidlo pro nula argumentu
+        return SUCCESS;
+    }
     int result = 0;
     moveAhead(token, token_lookahead, string);
     // the current token is an ID
@@ -243,6 +256,8 @@ int params(token_t* token, token_t* token_lookahead, dynamic_string* string){
         return FAILURE;
     }
     moveAhead(token, token_lookahead, string);
-    // now I am working with the CONSTANT
-    return constants(token, token_lookahead, string);
+    // now I am working with the var_ID
+    moveAhead(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
+    return type(token, token_lookahead, string) && params(token, token_lookahead, string);
 }
