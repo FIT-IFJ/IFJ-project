@@ -43,16 +43,19 @@ void string_add_char(dynamic_string *s, char d) {
         if (s->data == NULL) {
             error_memory(s);
         }
+        // vlozim znak do retezce
+        strncat(s->data, &d, 1);
     }
     else {
-        s->data = (char*) malloc(sizeof(char) + 1);
+        s->data = (char*) malloc(sizeof(char)*2);
         if (s->data == NULL) {
             error_memory(s);
         }
+        char pole[] = {d, '\0'};
+        // vlozim znak do retezce
+        strcpy(s->data, pole);
     }
 
-    // vlozim znak do retezce
-    strncat(s->data, &d, 1);
     s->size++;
 }
 
