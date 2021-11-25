@@ -132,9 +132,6 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
     return result;
 
 }
-int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    return SUCCESS;
-}
 
 int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string){
     // the current TOKEN is the ID of function
@@ -166,7 +163,7 @@ int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
 }
 
 int type(token_t* token, token_t* token_lookahead, dynamic_string* string) {
-    // if "(" here should deal with the epsilon rule = zero types given
+    // if ")" here should deal with the epsilon rule = zero types given
     if (token->type == TYPE_DATATYPE){
         return SUCCESS;
     }
@@ -195,9 +192,57 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) 
         return FAILURE;
     }
     moveAhead(token, token_lookahead, string);
-    // now I am working with the constant
+    // now I am working with the CONSTANT
     return constants(token, token_lookahead, string);
 
 }
 // aktualni TODO - vyresit epsilon pravidla pro argumenty deklaraci, definici a volani fci
-// TODO dodelat constanty
+
+int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    int result = 0;
+    // token_lookahead == FUNC_ID -> zpracovat se symboltable
+    get_token(token, string);
+    get_token(token_lookahead, string);
+    if (strcmp(token->attribute, "(")) {
+        return FAILURE;
+    }
+    result = param_list(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
+    if (!strcmp(token_lookahead->attribute, ":"))
+    {
+        // jestli je v lookaheadu dvojtecka, tak uzivatel specifikuje return values -> musim zkontrolovat type:list
+        result = result && type_list(token, token_lookahead, string);
+    }
+    if (!strcmp(token_lookahead->attribute, "end")){
+        return SUCCESS;
+    }
+    return result;
+}
+
+int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    int result = 0;
+    moveAhead(token, token_lookahead, string);
+    // the current token is an ID
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ":"))
+    {
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    result = type(token, token_lookahead, string);
+    return  result && params(token, token_lookahead, string);
+
+}
+int params(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    if (!strcmp(token_lookahead->attribute, ")")){
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ",")){
+        report_error("expected comma", token->line);
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    // now I am working with the CONSTANT
+    return constants(token, token_lookahead, string);
+}
