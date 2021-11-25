@@ -9,7 +9,7 @@
 
 #include "precedence_parser.h"
 
-
+#include "structures.h"
 
 
 #define NUM_OF_SYMB 17
@@ -34,8 +34,6 @@ char pp_table[NUM_OF_SYMB][NUM_OF_SYMB]={
   /*  )  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '_',  '_',  '>',  '>'  },
   /*  $  */   {'<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '_',  '#'  } // # .. exp ok
 };
-
-
 
 
 
@@ -371,7 +369,182 @@ void error(int err_num)
 
 
 
+
+
+
+
+
+void parse_expression (DLList *list)
+{
+    int stack_n;        // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
+    int token_n;        // hodnota na aktualneho tokenu (prava strana suradnice vramci tabulky)
+    int count = 0;
+   
+    pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
+    //token_t* token = malloc(sizeof(token_t));
+    if (stack == NULL )//|| token == NULL)
+        return -1;
+
+    stack_init(stack);
+    stack_push(stack, DOLR);
+
+    DLLElement *element;
+
+    element = list->first;
+
+
+    while (true) //length of array
+    {
+        token_n = element->token->spec;
+        element = element->next;
+
+        stack_n = stack_top_term(stack);
+
+        printf("%d : %d\nsymbol ..%c\n",stack_n,token_n,pp_table[stack_n][token_n]);
+
+        switch (pp_table[stack_n][token_n])
+        {
+        case '=':
+            stack_push(stack, token_n);
+            token_n = element->token->spec;
+            element = element->next;
+            break;
+        
+        case '<':
+            stack_mark(stack);
+            stack_push(stack, token_n);
+            token_n = element->token->spec;
+            element = element->next;
+            break;
+
+        case '>':
+            if (! reduce(stack)) printf("**Syntax error**\n");  // vyberie tokeny zo zasobniku az po MARK ('<'), porovna s pravidlami a redukuje
+            stack_push(stack, NONT);
+            break;
+
+        case '#':
+            stack_dispose(stack);
+            printf("Successfully ended\n");
+            return 0;
+            break;
+
+        default:
+            printf("**ERROR**\n");
+            break;
+        }
+    }
+    if (!stack_empty)
+        printf("**Stack is not empty**\n");
+    return 0;
+
+}
+
+
+
+
+
+
+int main()
+{
+    DLList *list = (DLList *)malloc (sizeof(DLList));
+    token_t* token = malloc(sizeof(token_t));
+    if (list == NULL || token == NULL)
+        return -1;
+
+    dynamic_string *string = string_init();
+
+    get_token(token,string);
+    DLL_fill(list,token,string);
+
+
+
+    parse_expression(list);
+
+    DLL_Dispose(list);
+    free (list);
+    free (token);
+
+    return 0;
+}
+
+
+
+
 /*
+
+// NEW VERSION
+
+
+
+int main()
+{
+
+    int stack_n;        // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
+    int token_n;        // hodnota na aktualneho tokenu (prava strana suradnice vramci tabulky)
+    int count = 0;
+
+    pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
+    if (stack == NULL)
+        return -1;
+
+    stack_init(stack);
+    stack_push(stack, DOLR);
+
+
+    int tokens[20] = { OPEN, OPEN, HASH, OPEN, OPEN, IDOP, CONC, IDOP, CLOS, CONC, IDOP,CLOS,CLOS, LEEQ, IDOP, CLOS, DOLR};
+
+    token_n = tokens[count];
+    count++;
+
+    while (true) //length of array
+    {
+        stack_n = stack_top_term(stack);
+
+        printf("%d : %d\nsymbol ..%c\n",stack_n,token_n,pp_table[stack_n][token_n]);
+
+        switch (pp_table[stack_n][token_n])
+        {
+        case '=':
+            stack_push(stack, token_n);
+            token_n = tokens[count];
+            count++; // zjednot to
+            break;
+        
+        case '<':
+            stack_mark(stack);
+            stack_push(stack, token_n);
+            token_n = tokens[count];
+            count++;
+            break;
+
+        case '>':
+            if (! reduce(stack)) printf("**Syntax error**\n");  // vyberie tokeny zo zasobniku az po MARK ('<'), porovna s pravidlami a redukuje
+            stack_push(stack, NONT);
+            break;
+
+        case '#':
+
+            stack_dispose(stack);
+
+            printf("Successfully ended\n");
+            return 0;
+            break;
+
+        default:
+            printf("**ERROR**\n");
+            break;
+        }
+    }
+    if (!stack_empty) // ***
+        printf("**Stack is not empty**\n");
+    return 0;
+}
+
+
+
+
+// OLD VERSION
+
 int parse_expression(token_t *token, dynamic_string *string, token_t *tmp_token)
 {
     int stack_n;        // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
@@ -465,71 +638,6 @@ int parse_expression(token_t *token, dynamic_string *string, token_t *tmp_token)
     }
 
 }
-
-
 */
 
 
-
-int main()
-{
-
-    int stack_n;        // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
-    int token_n;        // hodnota na aktualneho tokenu (prava strana suradnice vramci tabulky)
-    int count = 0;
-
-    pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
-    if (stack == NULL)
-        return -1;
-
-    stack_init(stack);
-    stack_push(stack, DOLR);
-
-
-    int tokens[20] = { OPEN, OPEN, HASH, OPEN, OPEN, IDOP, CONC, IDOP, CLOS, CONC, IDOP,CLOS,CLOS, LEEQ, IDOP, CLOS, DOLR};
-    token_n = tokens[count];
-    count++;
-
-    while (true) //length of array
-    {
-        stack_n = stack_top_term(stack);
-
-        printf("%d : %d\nsymbol ..%c\n",stack_n,token_n,pp_table[stack_n][token_n]);
-
-        switch (pp_table[stack_n][token_n])
-        {
-        case '=':
-            stack_push(stack, token_n);
-            token_n = tokens[count];
-            count++; // zjednot to
-            break;
-        
-        case '<':
-            stack_mark(stack);
-            stack_push(stack, token_n);
-            token_n = tokens[count];
-            count++;
-            break;
-
-        case '>':
-            if (! reduce(stack)) printf("**Syntax error**\n");  // vyberie tokeny zo zasobniku az po MARK ('<'), porovna s pravidlami a redukuje
-            stack_push(stack, NONT);
-            break;
-
-        case '#':
-
-            stack_dispose(stack);
-
-            printf("Successfully ended\n");
-            return 0;
-            break;
-
-        default:
-            printf("**ERROR**\n");
-            break;
-        }
-    }
-    if (!stack_empty) // ***
-        printf("**Stack is not empty**\n");
-    return 0;
-}

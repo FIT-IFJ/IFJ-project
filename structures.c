@@ -1,24 +1,5 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
-#include "scanner.h"
-
-
-typedef struct DLLElement {
-	token_t *token;
-    struct DLLElement *prev;
-    struct DLLElement *next;
-} DLLElement;
-
-typedef struct {
-	DLLElement* first;
-	DLLElement* active;
-	DLLElement* last;
-} DLList;
-
+#include "structures.h"
 
 
 
@@ -135,7 +116,6 @@ void DLL_Dispose( DLList *list )
 
 
 
-// *********************** currently unused DLL functions **************************
 
 void DLL_InsertFirst( DLList *list, token_t *token )
 {
@@ -146,7 +126,8 @@ void DLL_InsertFirst( DLList *list, token_t *token )
         error(2);
         return;
     }
-    new_element->token = token;
+    new_element->token = (token_t *) malloc(sizeof(token_t));
+    * new_element->token = *token;
     new_element->next = list->first;
     new_element->prev = NULL;
     if(list->first != NULL)
@@ -194,6 +175,10 @@ void DLL_DeleteFirst( DLList *list )
 
 
 }
+
+
+
+// *********************** currently unused DLL functions **************************
 
 
 void DLL_First( DLList *list )
@@ -258,7 +243,8 @@ void DLL_InsertAfter( DLList *list, token_t *token )
     if (list->active != NULL)    
     {
         DLLElement *new_element = (DLLElement *)malloc(sizeof(DLLElement));
-        new_element->token = token;
+        new_element->token = (token_t *) malloc(sizeof(token_t));
+        * new_element->token = *token;
         new_element->next = list->active->next;
         new_element->prev = list->active;
         list->active->next = new_element;
@@ -277,7 +263,8 @@ void DLL_InsertBefore( DLList *list, token_t *token )
     if (list->active != NULL)
     {
         DLLElement *new_element = (DLLElement *) malloc(sizeof(DLLElement));
-        new_element->token = token;
+        new_element->token = (token_t *) malloc(sizeof(token_t));
+        * new_element->token = *token;
         new_element->next = list->active;
         new_element->prev = list->active->prev;
         list->active->prev = new_element;
@@ -386,7 +373,7 @@ void DLL_to_DLL(DLList *pp_list, DLList *list, token_t* token)
 {
     DLL_GetLast(pp_list, token);
     DLL_DeleteLast(pp_list);
-    DLL_InsertLast(list, token);
+    DLL_InsertFirst(list, token);
 }
 
 
@@ -423,7 +410,7 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
         else if( pp_list->last->prev != NULL )
         {
              //ak nasleduje dalsi identifier bez znamienka medzi nimi, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
-            if (pp_list->last->token->type == TYPE_IDENTIFIER && pp_list->last->prev->token->type == TYPE_IDENTIFIER)
+            if (pp_list->last->token->type == TYPE_IDENTIFIER && (pp_list->last->prev->token->type == TYPE_IDENTIFIER || pp_list->last->prev->token->spec == SPEC_CLOS))
             {
                 DLL_to_DLL(pp_list, list, token);
                 break;
@@ -439,13 +426,17 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
     }
 
     if (list->last != NULL)
+    {
+        token->spec = DOLR;
+        DLL_InsertLast( pp_list, token);
         parse_expression(pp_list);      //docasny vypis pre znazornenie prace PSA parseru
+    }
     DLL_Dispose(pp_list);               // vymazanie pp_listu po tom ako su vyrazy spracovane
     free(pp_list);
 }
 
 // ***************************************************************************
-
+/*
 
 int main()  // testovaci main
 {
@@ -483,12 +474,12 @@ int main()  // testovaci main
 }
 
 
+*/
 
 
 
 
 
-/*
 int main()  // tento main uz znazornuje pracu parseru a mal by robit (ale nerobi) to co chcem 
 {
     DLList *list = (DLList *)malloc (sizeof(DLList));
@@ -505,16 +496,27 @@ int main()  // tento main uz znazornuje pracu parseru a mal by robit (ale nerobi
         get_token(token,string);
         printf("\n---> %s,%d,%d\n",token->attribute,token->type,token->spec);   // cinnost parseru
 
-        if (token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->spec == SPEC_WHILE || token->type == TYPE_ASSIGNMENT)
+        if (token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->spec == SPEC_WHILE || token->type == TYPE_ASSIGNMENT) // Tejd si sam triedi
         {
+
+
             DLL_parse(list,token,string);   // volanie pre parsovanie pripadneho vyrazu
             if (list->last != NULL)
             {
                 element = list->first;
-                while(element != NULL)      // v listu sa nachadzaju omylom ukradnute tokeny pre parser
+                while(element != NULL)      // v liste sa nachadza omylom ukradnuty token pre parser
                 {
-                    printf("\n---> %s,%d,%d\n",element->token->attribute,element->token->type,element->token->spec);    // cinnost parseru
-                    element = element->next;
+                    printf("\n---> %s,%d,%d\n",element->token->attribute,element->token->type,element->token->spec);    // cinnost parseru -> moze obsahovat "keyword","datatype","identifier"
+                    if (token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->spec == SPEC_WHILE)
+                    {
+                        DLL_parse(list,token,string);
+                        if (list->last != NULL)//
+                        {
+                            element = list->first;
+                            printf("\n---> %s,%d,%d\n",element->token->attribute,element->token->type,element->token->spec);//
+                        }
+                    }
+                    element = element->next;//
                 }
             }
         }
@@ -527,4 +529,3 @@ int main()  // tento main uz znazornuje pracu parseru a mal by robit (ale nerobi
 
     return 0;
 }
-*/
