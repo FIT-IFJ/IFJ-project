@@ -30,6 +30,9 @@ void moveAhead(token_t* token, token_t* token_lookahead, dynamic_string* string)
     *token = *token_lookahead;
     get_token(token_lookahead, string);
 }
+void report_error(char* msg, int line){
+    printf("Syntax error: %s on line %d\n", msg, line);
+}
 int program(token_t* token, token_t* token_lookahead, dynamic_string* string){
     int result;
     result = prologue(token, string) && program_body(token, token_lookahead, string);
@@ -108,7 +111,6 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
     if (token->type == TYPE_DATATYPE)
     {
         result = type_list(token, token_lookahead, string);
-        // do nothing for now
     }
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ")"))
@@ -133,17 +135,23 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
 int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string){
     return SUCCESS;
 }
+
 int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    // FOR DEBUGGING PURPOSES, the while loop gets rid of all the tokens
-    while (strcmp(token_lookahead->attribute, ")"))
+    // the current TOKEN is the ID of function
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, "("))
     {
-        moveAhead(token, token_lookahead, string);
+        return FAILURE;
     }
-    return SUCCESS;
+    //if (token_lookahead->type == TYPE_STRING) // THIS IS GONNA NEED TO CHECK FOR ALL THE CONSTANTS, now only accepts strings
+    return constant_list(token, token_lookahead, string);
+
 }
+
 int type_list(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     return type(token, token_lookahead, string) && types(token, token_lookahead, string);
 }
+
 int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     if (!strcmp(token_lookahead->attribute, ")")){
         return SUCCESS;
@@ -156,9 +164,40 @@ int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     return type(token, token_lookahead, string) && types(token, token_lookahead, string);
 
 }
+
 int type(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    // if "(" here should deal with the epsilon rule = zero types given
     if (token->type == TYPE_DATATYPE){
         return SUCCESS;
     }
     return FAILURE;
 }
+
+int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    if (!strcmp(token_lookahead->attribute, ")"))
+    {
+        // epsilon pravidlo
+        return SUCCESS;
+    }
+
+    moveAhead(token, token_lookahead, string);
+    // the current token is a constant - will need to work with that
+    return constants(token, token_lookahead, string);
+}
+
+int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+    if (!strcmp(token_lookahead->attribute, ")")){
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ",")){
+        report_error("expected comma", token->line);
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    // now I am working with the constant
+    return constants(token, token_lookahead, string);
+
+}
+// aktualni TODO - vyresit epsilon pravidla pro argumenty deklaraci, definici a volani fci
+// TODO dodelat constanty
