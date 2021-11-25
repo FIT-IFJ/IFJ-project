@@ -12,6 +12,20 @@
 #include <string.h>
 #include <stdbool.h>
 
+
 #include "scanner.h"
+
+
+ #define DOLR 16  // '$' len pre precedencnu tabulku
+
+ #define MARK 17  // nahradza '<' v zasobniku
+ #define NONT 18
+
+
+
+void error(int err_num);
+
+//#include "structures.h"
+//#include "scanner.h"
 
 void parse_expression (DLList *list);

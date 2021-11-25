@@ -3,27 +3,6 @@
 
 
 
-void error(int err_num)
-{
-    switch (err_num)
-    {
-    case 1:
-        fprintf(stderr, "Syntax error\n"); //delenie 0, zly zapis vyrazu,.. '_' v tabulke
-        exit(1);
-        break;
-    case 2:
-        fprintf(stderr, "Memory allocation error\n"); //malloc
-        exit(2);
-        break;
-    case 99:
-        fprintf(stderr, "Memory allocation error\n");
-        exit(99);
-        break;
-
-    }
-    
-}
-
 
 
 // *********************** currently used DLL functions **************************
@@ -324,7 +303,7 @@ int DLL_IsActive( DLList *list )
 
 // ***************************************************************************
 
-
+/*
 void parse_expression(DLList *pp_list)
 {
     DLLElement *element = pp_list->first;
@@ -333,9 +312,9 @@ void parse_expression(DLList *pp_list)
     {
         printf("processed[%s]\n", element->token->attribute);
         element = element->next;
-
     }
 }
+*/
 
 void DLL_fill(DLList *list, token_t *token, dynamic_string *string) // funkcia je zavolana po tokene "if", "while", "return" a "="
 {
@@ -436,49 +415,9 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
 }
 
 // ***************************************************************************
+
+
 /*
-
-int main()  // testovaci main
-{
-    DLList *list = (DLList *)malloc (sizeof(DLList));
-    token_t* token = malloc(sizeof(token_t));
-    if (list == NULL || token == NULL)
-        return -1;
-
-    dynamic_string *string = string_init();
-    
-    DLL_Init(list);
-    
-    do
-    {
-        get_token(token,string);
-
-        printf("\n---> %s,%d,%d\n",token->attribute,token->type,token->spec);
-
-        if(token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->spec == SPEC_WHILE || token->type == TYPE_ASSIGNMENT)
-        {
-            //DLL_fill(list, token, string);      // testovacie naplnenie DLL
-            //parse_expression(list);             // testovaci vypis DLL
-            DLL_parse(list, token, string);
-
-        }
-    }while (token->type != TYPE_EOF);
-
-
-    printf("\n\nKONIEC\n");
-    DLL_Dispose(list);
-    free (list);
-    free (token);
-
-    return 0;
-}
-
-
-*/
-
-
-
-
 
 int main()  // tento main uz znazornuje pracu parseru a mal by robit (ale nerobi) to co chcem 
 {
@@ -529,3 +468,32 @@ int main()  // tento main uz znazornuje pracu parseru a mal by robit (ale nerobi
 
     return 0;
 }
+*/
+
+
+
+
+int main()
+{
+    DLList *list = (DLList *)malloc (sizeof(DLList));
+    token_t* token = malloc(sizeof(token_t));
+    if (list == NULL || token == NULL)
+        return -1;
+
+    dynamic_string *string = string_init();
+
+    get_token(token,string);
+    DLL_fill(list,token,string);
+
+
+
+    parse_expression(list);
+
+    DLL_Dispose(list);
+    free (list);
+    free (token);
+
+    return 0;
+}
+
+

@@ -9,7 +9,7 @@
 
 #include "precedence_parser.h"
 
-#include "structures.h"
+#include "structures.h"//
 
 
 #define NUM_OF_SYMB 17
@@ -37,6 +37,7 @@ char pp_table[NUM_OF_SYMB][NUM_OF_SYMB]={
 
 
 
+/*
 typedef enum SYMBOLS {
     PLUS,  // '+'
     MINU,  // '-'
@@ -60,7 +61,7 @@ typedef enum SYMBOLS {
     NONT, // znaci nonterminal pre pravidla a zasobnik
 } Symbols;
 
-
+*/
 
 
 
@@ -201,61 +202,61 @@ bool reduce(pp_stack* stack) // prevedie redukciu '>'
         printf("( %i.)  E -> E [?] E\n",token_n[1]);
         switch (token_n[1])
         {
-            case PLUS:
+            case SPEC_PLUS:
                 /* rule 1 */
                 return true;
                 break;
 
-            case MINU:
+            case SPEC_MINU:
                 /* rule 2 */
                 return true;
 
-            case MULT:
+            case SPEC_MULT:
                 /* rule 3 */
                 return true;
                 break;
 
-            case DIVF:
+            case SPEC_DIVF:
                 /* rule 4 */
                 return true;
                 break;
 
-            case DIVI:
+            case SPEC_DIVI:
                 /* rule 5 */
                 return true;
                 break;
 
-            case LESS:
+            case SPEC_LESS:
                 /* rule 6 */
                 return true;
                 break;
             
-            case LEEQ:
+            case SPEC_LEEQ:
                 /* rule 7 */
                 return true;
                 break;
 
-            case GREA:
+            case SPEC_GREA:
                 /* rule 8 */
                 return true;
                 break;
 
-            case GREQ:
+            case SPEC_GREQ:
                 /* rule 9 */
                 return true;
                 break;
 
-            case EQUA:
+            case SPEC_EQUA:
                 /* rule 10 */
                 return true;
                 break;
 
-            case NOEQ:
+            case SPEC_NOEQ:
                 /* rule 11 */
                 return true;
                 break;
             
-            case CONC:
+            case SPEC_CONC:
                 /* rule 12 */
                 return true;
                 break;
@@ -265,19 +266,19 @@ bool reduce(pp_stack* stack) // prevedie redukciu '>'
                 break;
         }
     }
-    else if (token_n[0] == -1 && token_n[1] == HASH && token_n[2] == NONT)
+    else if (token_n[0] == -1 && token_n[1] == SPEC_HASH && token_n[2] == NONT)
     {
         /* rule 13 */
         printf("( 13.)  E -> # E \n");
         return true;
     }
-    else if (token_n[0] == -1 && token_n[1] == -1 && token_n[2] == IDOP)
+    else if (token_n[0] == -1 && token_n[1] == -1 && token_n[2] == SPEC_IDOP)
     {
         /* rule 14 */
         printf("( 14.)  E -> <i>\n");
         return true;
     }
-    else if (token_n[0] == OPEN && token_n[1] == NONT && token_n[2] == CLOS)
+    else if (token_n[0] == SPEC_OPEN && token_n[1] == NONT && token_n[2] == SPEC_CLOS)
     {
         /* rule 15 */
 
@@ -299,39 +300,39 @@ int convert(char* attribute)
 {
     int code_n;
     if(strcmp(attribute,"+") == 0)
-        code_n = PLUS;
+        code_n = SPEC_PLUS;
     else if(strcmp(attribute,"-") == 0)
-        code_n = MINU;
+        code_n = SPEC_MINU;
     else if(strcmp(attribute,"*") == 0)
-        code_n = MULT;
+        code_n = SPEC_MULT;
     else if(strcmp(attribute,"/") == 0)
-        code_n = DIVF;
+        code_n = SPEC_DIVF;
     else if(strcmp(attribute,"//") == 0)
-        code_n = DIVI;
+        code_n = SPEC_DIVI;
     else if(strcmp(attribute,"<") == 0)
-        code_n = LESS;
+        code_n = SPEC_LESS;
     else if(strcmp(attribute,"<=") == 0)
-        code_n = LEEQ;
+        code_n = SPEC_LEEQ;
     else if(strcmp(attribute,">") == 0)
-        code_n = GREA;
+        code_n = SPEC_GREA;
     else if(strcmp(attribute,">=") == 0)
-        code_n = GREQ;
+        code_n = SPEC_GREQ;
     else if(strcmp(attribute,"==") == 0)
-        code_n = EQUA;
+        code_n = SPEC_EQUA;
     else if(strcmp(attribute,"~=") == 0)
-        code_n = NOEQ;
+        code_n = SPEC_NOEQ;
     else if(strcmp(attribute,"..") == 0)
-        code_n = CONC;
+        code_n = SPEC_CONC;
     else if(strcmp(attribute,"#") == 0)
-        code_n = HASH;
+        code_n = SPEC_HASH;
 
     //else if(strcmp(attribute,"i") == 0)
     //    code_n = IDOP;
     
     else if(strcmp(attribute,"(") == 0)
-        code_n = OPEN;
+        code_n = SPEC_OPEN;
     else if(strcmp(attribute,")") == 0)
-        code_n = CLOS;
+        code_n = SPEC_CLOS;
 
     //else if(strcmp(attribute,"$") == 0)
     //    code_n = LAST;
@@ -383,7 +384,7 @@ void parse_expression (DLList *list)
     pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
     //token_t* token = malloc(sizeof(token_t));
     if (stack == NULL )//|| token == NULL)
-        return -1;
+        error(2);
 
     stack_init(stack);
     stack_push(stack, DOLR);
@@ -425,7 +426,6 @@ void parse_expression (DLList *list)
         case '#':
             stack_dispose(stack);
             printf("Successfully ended\n");
-            return 0;
             break;
 
         default:
@@ -435,7 +435,7 @@ void parse_expression (DLList *list)
     }
     if (!stack_empty)
         printf("**Stack is not empty**\n");
-    return 0;
+    return;
 
 }
 
@@ -443,6 +443,11 @@ void parse_expression (DLList *list)
 
 
 
+
+
+/*
+
+// skusobny main
 
 int main()
 {
@@ -468,6 +473,7 @@ int main()
 }
 
 
+*/
 
 
 /*
