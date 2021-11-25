@@ -23,7 +23,7 @@ dynamic_string *string_init() {
     }
 
     // inicializuji dynamicky retezec
-    s->size = 0;
+    s->size = 1;
     s->data = NULL;
 
     return s;
@@ -38,7 +38,7 @@ void string_free(dynamic_string *s) {
 void string_add_char(dynamic_string *s, char d) {
 
     // alokuji pamet
-    if (s->size != 0) {
+    if (s->size != 1) {
         s->data = (char*) realloc(s->data, ((sizeof(char)) * s->size + 1));
         if (s->data == NULL) {
             error_memory(s);
@@ -62,5 +62,5 @@ char* string_get(dynamic_string *s) {
 }
 
 void string_delete(dynamic_string *s) {
-    s->size = 0;
+    s->size = 1;
 }
