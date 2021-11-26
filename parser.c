@@ -1,7 +1,7 @@
 /* ******************************* parser.c ******************************** */
 /*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
 /*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
-/*  Cast: Syntakticky a semanticky analyzator                                  */
+/*  Cast: Syntakticky a semanticky analyzator                                 */
 /*  Vytvoril: Tym 102 - Kozub Tadeas, listopad 2021                           */
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
@@ -35,17 +35,19 @@ void report_error(char* msg, int line){
 }
 int program(token_t* token, token_t* token_lookahead, dynamic_string* string){
     int result;
-    result = prologue(token, string) && program_body(token, token_lookahead, string);
-    return result;
+    result = prologue(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
+    return result && program_body(token, token_lookahead, string);
+
 }
-int prologue(token_t* token, dynamic_string* string){
+int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string){
     get_token(token, string);
     printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
     if (!strcmp(token->attribute, "require"))
     {
-        get_token(token, string);
+        get_token(token_lookahead, string);
         printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
-        if (!strcmp(token->attribute, "\"ifj21\""))
+        if (!strcmp(token_lookahead->attribute, "\"ifj21\""))
         {
             return SUCCESS;
         }
@@ -55,22 +57,22 @@ int prologue(token_t* token, dynamic_string* string){
 }
 int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
     //int result = 0;
-    get_token(token, string);
-    printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
-    get_token(token_lookahead, string);
-    printf("THE CURRENT LOOKAHEAD IS: %s on line %d\n\n", token_lookahead->attribute, token_lookahead->line);
+
+    //printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
+    //get_token(token_lookahead, string);
     // ---
     // <program_body> -> <func_decl><program_body>
     // <program_body> -> <func_def><program_body>
     // <program_body> -> <func_call><program_body>
     // <program_body> -> e
     // ---
-    if (token->type == TYPE_EOF)
+    if (token_lookahead->type == TYPE_EOF)
     {
         // <program_body> -> e
         return SUCCESS;
     }
-    else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "global")))
+    moveAhead(token, token_lookahead, string);
+    if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "global")))
     {
         // <program_body> -> <func_decl><program_body>
         return func_decl(token, token_lookahead, string) && program_body(token, token_lookahead, string);
@@ -90,7 +92,7 @@ int program_body(token_t* token, token_t* token_lookahead, dynamic_string* strin
 int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
 {
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
-    int result = 0;
+    int result = 1;
     get_token(token, string);
     get_token(token_lookahead, string);
     if (strcmp(token->attribute, ":"))
@@ -111,22 +113,29 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
     if (token->type == TYPE_DATATYPE)
     {
         result = type_list(token, token_lookahead, string);
+        moveAhead(token, token_lookahead, string);
     }
-    moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ")"))
     {
         return FAILURE;
     }
-    moveAhead(token, token_lookahead, string);
-    if (strcmp(token->attribute, ":"))
-    {
-        return FAILURE;
-    }
     //moveAhead(token, token_lookahead, string);
-    if (token_lookahead->type == TYPE_DATATYPE)
+//    if (strcmp(token->attribute, ":"))
+//    {
+//        return FAILURE;
+//    }
+//    //moveAhead(token, token_lookahead, string);
+//    if (token_lookahead->type == TYPE_DATATYPE)
+//    {
+//        result = result && type_list(token, token_lookahead, string);
+//        // do nothing for now
+//    }
+    if (!strcmp(token_lookahead->attribute, ":"))
     {
-        //result = type_list();
-        // do nothing for now
+        // jestli je v lookaheadu dvojtecka, tak uzivatel specifikuje return values -> musim zkontrolovat type:list
+        moveAhead(token, token_lookahead, string);
+        moveAhead(token, token_lookahead, string);
+        result = result && type_list(token, token_lookahead, string);
     }
     //result = 1; // FOR DEBUGGING PURPOSES
     return result;
@@ -153,8 +162,11 @@ int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     if (!strcmp(token_lookahead->attribute, ")")){
         return SUCCESS;
     }
-    if (token_lookahead->type != TYPE_DATATYPE)
+
+    //if (token_lookahead->type == TYPE_IDENTIFIER || !strcmp(token_lookahead->attribute, "global") || !strcmp(token_lookahead->attribute, "function") || !strcmp(token_lookahead->attribute, "end"))
+    if (token_lookahead->type == TYPE_IDENTIFIER || token_lookahead->type == TYPE_KEYWORD || token_lookahead->type == TYPE_EOF)
     {
+        // epsilon pravidlo pro konec vyctu typu mimo zavorky
         return SUCCESS;
     }
     moveAhead(token, token_lookahead, string);
@@ -177,7 +189,8 @@ int type(token_t* token, token_t* token_lookahead, dynamic_string* string) {
 int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     if (!strcmp(token_lookahead->attribute, ")"))
     {
-        // epsilon pravidlo
+        // epsilon pravidlo pro nula argumentu
+        moveAhead(token, token_lookahead, string);
         return SUCCESS;
     }
 
@@ -188,6 +201,7 @@ int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* stri
 
 int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     if (!strcmp(token_lookahead->attribute, ")")){
+        moveAhead(token, token_lookahead, string);
         return SUCCESS;
     }
     moveAhead(token, token_lookahead, string);
@@ -230,7 +244,7 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
 int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
     if (!strcmp(token_lookahead->attribute, ")"))
     {
-        // epsilon pravidlo pro nula argumentu
+        // epsilon pravidlo pro nula parametru
         return SUCCESS;
     }
     int result = 0;

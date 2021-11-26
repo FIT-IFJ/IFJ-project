@@ -14,18 +14,18 @@
 
 
 int program(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int prologue(token_t* token, dynamic_string* string);
+int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int type_list(token_t* token, dynamic_string* string);
-int types(token_t* token, dynamic_string* string);
-int type(token_t* token, dynamic_string* string);
-int param_list(token_t* token, dynamic_string* string);
-int params(token_t* token, dynamic_string* string);
-int constant_list(token_t* token, dynamic_string* string);
-int constants(token_t* token, dynamic_string* string);
+int type_list(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int types(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int type(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int params(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int constants(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int func_body(token_t* token, dynamic_string* string);
 int element(token_t* token, dynamic_string* string);
 int decl_element(token_t* token, dynamic_string* string);
