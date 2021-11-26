@@ -12,8 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-
-#include "scanner.h"
+#include "structures.h"
 
 
  #define DOLR 16  // '$' len pre precedencnu tabulku
@@ -23,9 +22,6 @@
 
 
 
-void error(int err_num);
-
-//#include "structures.h"
-//#include "scanner.h"
+void DLL_parse(DLList *list, token_t *token, dynamic_string *string);
 
 void parse_expression (DLList *list);
