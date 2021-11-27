@@ -1,3 +1,19 @@
+/* ************************* precedence_parser.h **************************** */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast:    Abstraktne struktury pre parser                                  */
+/*  Vytvoril: Tym 102 - Bubakova Natalia, listopad 2021                       */
+/*  Upravy:   Tym 102                                                         */
+/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
 
 #include "structures.h"
 
