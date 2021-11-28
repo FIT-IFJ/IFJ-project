@@ -1,14 +1,16 @@
 require "ifj21"
 function MYFUNC(b:string, a: string):string, string
     if EXPR then
-            if EXPR then
+            while EXPR do
             end
-            else
-            end
-        end
     else
-        end
-end
+            while EXPR do
+                while EXPR do
+                end
+            end
+    end
+
+fend
 global YO : function(string): number, number
 baz()
 

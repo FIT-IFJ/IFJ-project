@@ -227,10 +227,13 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
         moveAhead(token, token_lookahead, string);
         result = result && type_list(token, token_lookahead, string);
     }
-    // zde bude kontrola func_body
+    if (!strcmp(token_lookahead->attribute, "fend")){
+            // epsilon rule for function body
+            moveAhead(token, token_lookahead, string);
+            return result;
+        }
     result = result && func_body(token, token_lookahead, string);
-    if (strcmp(token->attribute, "end")){
-        // both lines are hardcoded for testing
+    if (strcmp(token->attribute, "fend")){
         return FAILURE;
     }
     return result;
@@ -275,22 +278,29 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
     if (token_lookahead->type == TYPE_EOF){
         return FAILURE;
     }
-    if (!strcmp(token_lookahead->attribute, "end")){
+    if (!strcmp(token_lookahead->attribute, "fend")){
         moveAhead(token, token_lookahead, string);
         return SUCCESS;
     }
+    if (token_lookahead->spec == SPEC_ELSE || token_lookahead->spec == SPEC_END){
+        // epsilon rule for ending the functions's body
+        return SUCCESS;
+    }
+    // probably gonna have to add more keywords(?) checks to end while statements and others
+
     moveAhead(token, token_lookahead, string);
     if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "if"))){
         return if_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
     }
-    //else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
-    //    return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
-    //}
+    else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
+        return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    }
     return FAILURE;
 }
 
 int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
     // the current token is "if"
+    int result = 1;
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "EXPR"))
     {
@@ -301,19 +311,55 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     {
         return FAILURE;
     }
-    //moveAhead(token, token_lookahead, string);
-    int result = func_body(token, token_lookahead, string);
+    if (token_lookahead->spec == SPEC_ELSE)
+    {
+        // epsilon rule
+    }
+    else
+    {
+        result = func_body(token, token_lookahead, string);
+    }
     moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_ELSE)
     {
         return FAILURE;
     }
-    result = result && func_body(token, token_lookahead, string);
+    // now at token else
+    if (token_lookahead->spec == SPEC_END){
+        // epsilon rule
+    }
+    else
+    {
+        result = func_body(token, token_lookahead, string) && result;
+    }
+    moveAhead(token, token_lookahead, string); // move_ahead musi byt tady nebo v epsilon vetvi predchoziho ifu
+    if (token->spec != SPEC_END)
+    {
+        return FAILURE;
+    }
     //moveAhead(token, token_lookahead, string);
+    return result;
+}
+
+int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    // the current token is "while"
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, "EXPR"))
+    {
+        // hardcoded for EXPR until I fix compatibility with PP
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (token->spec != SPEC_DO)
+    {
+        return FAILURE;
+    }
+    //moveAhead(token, token_lookahead, string);
+    int result = func_body(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_END)
     {
         return FAILURE;
     }
     return result;
-    //int result = parse_expression()
 }
