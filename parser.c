@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "scanner.h"
 #include "parser.h"
+// #include "precedence_parser.h" todo: resolve the issues while including PP
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -19,10 +20,12 @@ int main(){
     token_t* new_token = malloc(sizeof(token_t));
     token_t* new_token_lookahead = malloc(sizeof(token_t));
     dynamic_string* string = string_init();
+    printf("-- PARSING STARTED --\n");
     int result = program(new_token, new_token_lookahead, string);
-    printf("[STATUS CODE OF THE PARSING: %d]\n", result);
-    if (result == SUCCESS) {
-        printf("Your program seems OK.\n");
+    int syntax_control_result = result ? 0 : 1;
+    printf("[STATUS CODE OF THE PARSING: %d]\n", syntax_control_result);
+    if (!syntax_control_result) {
+        printf("Syntax control successful.\n");
     }
     return 0;
 }
@@ -42,11 +45,9 @@ int program(token_t* token, token_t* token_lookahead, dynamic_string* string){
 }
 int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string){
     get_token(token, string);
-    printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
     if (!strcmp(token->attribute, "require"))
     {
         get_token(token_lookahead, string);
-        printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
         if (!strcmp(token_lookahead->attribute, "\"ifj21\""))
         {
             return SUCCESS;
@@ -56,16 +57,7 @@ int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string){
 
 }
 int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    //int result = 0;
 
-    //printf("THE CURRENT TOKEN IS: %s on line %d\n\n", token->attribute, token->line);
-    //get_token(token_lookahead, string);
-    // ---
-    // <program_body> -> <func_decl><program_body>
-    // <program_body> -> <func_def><program_body>
-    // <program_body> -> <func_call><program_body>
-    // <program_body> -> e
-    // ---
     if (token_lookahead->type == TYPE_EOF)
     {
         // <program_body> -> e
@@ -219,8 +211,10 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) 
 int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     int result = 0;
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
-    get_token(token, string);
-    get_token(token_lookahead, string);
+    //get_token(token, string);
+    //get_token(token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "(")) {
         return FAILURE;
     }
@@ -234,9 +228,10 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
         result = result && type_list(token, token_lookahead, string);
     }
     // zde bude kontrola func_body
-    if (!strcmp(token_lookahead->attribute, "end")){
-        // hardcoded for testing
-        return result;
+    result = result && func_body(token, token_lookahead, string);
+    if (strcmp(token->attribute, "end")){
+        // both lines are hardcoded for testing
+        return FAILURE;
     }
     return result;
 }
@@ -274,4 +269,51 @@ int params(token_t* token, token_t* token_lookahead, dynamic_string* string){
     moveAhead(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     return type(token, token_lookahead, string) && params(token, token_lookahead, string);
+}
+
+int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    if (token_lookahead->type == TYPE_EOF){
+        return FAILURE;
+    }
+    if (!strcmp(token_lookahead->attribute, "end")){
+        moveAhead(token, token_lookahead, string);
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "if"))){
+        return if_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    }
+    //else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
+    //    return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    //}
+    return FAILURE;
+}
+
+int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    // the current token is "if"
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, "EXPR"))
+    {
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (token->spec != SPEC_THEN)
+    {
+        return FAILURE;
+    }
+    //moveAhead(token, token_lookahead, string);
+    int result = func_body(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
+    if (token->spec != SPEC_ELSE)
+    {
+        return FAILURE;
+    }
+    result = result && func_body(token, token_lookahead, string);
+    //moveAhead(token, token_lookahead, string);
+    if (token->spec != SPEC_END)
+    {
+        return FAILURE;
+    }
+    return result;
+    //int result = parse_expression()
 }
