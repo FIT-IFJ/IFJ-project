@@ -1,11 +1,12 @@
 require "ifj21"
 function MYFUNC(b:string, a: string):string, string
     if EXPR then
-            while EXPR do
-            end
+            blink(a:string, "hello", b:number)
+            foo()
     else
             while EXPR do
                 while EXPR do
+                    bar()
                 end
             end
     end

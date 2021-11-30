@@ -206,13 +206,10 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) 
     return constants(token, token_lookahead, string);
 
 }
-// aktualni TODO - vyresit epsilon pravidla pro argumenty deklaraci, definici a volani fci
 
 int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     int result = 0;
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
-    //get_token(token, string);
-    //get_token(token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "(")) {
@@ -248,6 +245,7 @@ int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string)
     int result = 0;
     moveAhead(token, token_lookahead, string);
     // the current token is an ID
+    /// add child
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ":"))
     {
@@ -294,6 +292,9 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
         return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    }
+    else if (token->type == TYPE_IDENTIFIER && token_lookahead->spec == SPEC_OPEN){
+        return func_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
     }
     return FAILURE;
 }
@@ -363,3 +364,65 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
     }
     return result;
 }
+
+int func_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    // the current token is FUNC_ID
+    int result = 1;
+    moveAhead(token, token_lookahead, string);
+    // already checked opening bracket in lookahead, so can skip that one
+    if (token_lookahead->spec == SPEC_CLOS)
+    {
+        // epsilon rule for no given arguments
+    }
+    else
+    {
+        result = arg_list(token, token_lookahead, string);
+    }
+    moveAhead(token, token_lookahead, string);
+    return  result;
+    //moveAhead(token, token_lookahead, string);
+    // todo check for right closing bracket?
+}
+
+int arg_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    return arg(token, token_lookahead, string) && args(token, token_lookahead, string);
+}
+
+int arg(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    moveAhead(token, token_lookahead, string);
+    if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
+    {
+        return SUCCESS;
+    }
+    if (token->type == TYPE_IDENTIFIER)
+    {
+        moveAhead(token, token_lookahead, string);
+        if (strcmp(token->attribute, ":"))
+        {
+            return FAILURE;
+        }
+        moveAhead(token, token_lookahead, string);
+        if (token->type == TYPE_DATATYPE)
+        {
+            return SUCCESS;
+        }
+    }
+    return FAILURE;
+}
+
+int args(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    int result;
+    if (!strcmp(token_lookahead->attribute, ")")){
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ",") != 0){
+        report_error("expected comma", token->line);
+        return FAILURE;
+    }
+    // now I am working with the CONSTANT or ID
+    result = arg(token, token_lookahead, string);
+    return args(token, token_lookahead, string) && result;
+
+}
+
