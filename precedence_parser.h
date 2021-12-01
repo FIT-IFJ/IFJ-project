@@ -15,13 +15,6 @@
 #include "structures.h"
 
 
- #define DOLR 16  // '$' len pre precedencnu tabulku
-
- #define MARK 17  // nahradza '<' v zasobniku
- #define NONT 18
-
-
-
 void DLL_parse(DLList *list, token_t *token, dynamic_string *string);
 
 void parse_expression (DLList *list);
