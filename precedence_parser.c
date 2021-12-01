@@ -441,8 +441,8 @@ void DLL_fill(DLList *list, token_t *token, dynamic_string *string) // funkcia j
 void DLL_to_DLL(DLList *pp_list, DLList *list, token_t* token)
 {
     DLL_GetLast(pp_list, token);
-    DLL_DeleteLast(pp_list);
     DLL_InsertFirst(list, token);
+    DLL_DeleteLast(pp_list);
 }
 
 
@@ -467,7 +467,6 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
     while(token->type != TYPE_EOF)
     {
         get_token(token, string);
-
         DLL_InsertLast(pp_list, token);
 
          //ak nasleduje keyword, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
@@ -478,8 +477,8 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
         }
         else if( pp_list->last->prev != NULL )
         {
-             //ak nasleduje dalsi identifier bez znamienka medzi nimi, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
-            if (pp_list->last->token->type == TYPE_IDENTIFIER && (pp_list->last->prev->token->type == TYPE_IDENTIFIER || pp_list->last->prev->token->spec == SPEC_CLOS))
+             //ak nasleduje dalsi identifier bez znamienka medzi nimi (t.j. koniec vyrazu), tak vymaze posledny token a vlozi ho do listu pre hlavny parser
+            if (pp_list->last->token->type == TYPE_IDENTIFIER && (pp_list->last->prev->token->spec == SPEC_IDOP || pp_list->last->prev->token->spec == SPEC_CLOS))
             {
                 DLL_to_DLL(pp_list, list, token);
                 break;
@@ -493,8 +492,8 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
             }
         }
     }
-
-    if (list->last != NULL)
+    
+    if (pp_list->last != NULL)
     {
         token->spec = DOLR;
         DLL_InsertLast( pp_list, token);
@@ -571,10 +570,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-/*
+///*
 int main()
 {
     return parser();
 }
-*/
+//*/
 

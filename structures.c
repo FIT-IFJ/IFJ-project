@@ -87,7 +87,8 @@ void DLL_GetLast( DLList *list, token_t *token )
     if (list->last == NULL)
         error(2);
     else
-        token = list->last->token;
+        *token = *list->last->token;
+
 }
 
 
