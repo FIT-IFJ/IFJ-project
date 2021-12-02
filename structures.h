@@ -13,7 +13,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#ifndef SCANNER_H
+#define SCANNER_H
 #include "scanner.h"
+#endif
 
 typedef struct DLLElement {
 	token_t *token;

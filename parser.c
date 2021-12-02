@@ -341,7 +341,8 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     }
     // now at token else
     if (token_lookahead->spec == SPEC_END){
-        // epsilon rule
+        moveAhead(token, token_lookahead, string);
+        // epsilon rule 
     }
     else
     {
