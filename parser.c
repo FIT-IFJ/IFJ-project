@@ -8,9 +8,13 @@
 
 #include <string.h>
 #include <stdio.h>
+#ifndef SCANNER_H
+#define SCANNER_H
 #include "scanner.h"
+#endif
+
 #include "parser.h"
-// #include "precedence_parser.h" todo: resolve the issues while including PP
+ #include "precedence_parser.h"
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -224,13 +228,13 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
         moveAhead(token, token_lookahead, string);
         result = result && type_list(token, token_lookahead, string);
     }
-    if (!strcmp(token_lookahead->attribute, "fend")){
+    if (!strcmp(token_lookahead->attribute, "end")){
             // epsilon rule for function body
             moveAhead(token, token_lookahead, string);
             return result;
         }
     result = result && func_body(token, token_lookahead, string);
-    if (strcmp(token->attribute, "fend")){
+    if (strcmp(token->attribute, "end")){
         return FAILURE;
     }
     return result;
@@ -276,7 +280,7 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
     if (token_lookahead->type == TYPE_EOF){
         return FAILURE;
     }
-    if (!strcmp(token_lookahead->attribute, "fend")){
+    if (!strcmp(token_lookahead->attribute, "end")){
         moveAhead(token, token_lookahead, string);
         return SUCCESS;
     }
@@ -293,8 +297,18 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
         return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
     }
+    else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "return"))){
+        return return_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    }
     else if (token->type == TYPE_IDENTIFIER && token_lookahead->spec == SPEC_OPEN){
         return func_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    }
+    else if (token->spec == SPEC_LOCAL){
+        return decl_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+    }
+    else if (!strcmp(token_lookahead->attribute, ",") || token_lookahead->type == TYPE_ASSIGNMENT)
+    {
+        return assignment(token, token_lookahead, string) && func_body(token, token_lookahead, string);
     }
     return FAILURE;
 }
@@ -333,7 +347,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     {
         result = func_body(token, token_lookahead, string) && result;
     }
-    moveAhead(token, token_lookahead, string); // move_ahead musi byt tady nebo v epsilon vetvi predchoziho ifu
+    //moveAhead(token, token_lookahead, string); // move_ahead musi byt tady nebo v epsilon vetvi predchoziho ifu
     if (token->spec != SPEC_END)
     {
         return FAILURE;
@@ -357,7 +371,7 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
     }
     //moveAhead(token, token_lookahead, string);
     int result = func_body(token, token_lookahead, string);
-    moveAhead(token, token_lookahead, string);
+    //moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_END)
     {
         return FAILURE;
@@ -369,7 +383,7 @@ int func_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
     // the current token is FUNC_ID
     int result = 1;
     moveAhead(token, token_lookahead, string);
-    // already checked opening bracket in lookahead, so can skip that one
+    // already checked opening bracket in lookahead, so I can skip that one
     if (token_lookahead->spec == SPEC_CLOS)
     {
         // epsilon rule for no given arguments
@@ -426,3 +440,141 @@ int args(token_t* token, token_t* token_lookahead, dynamic_string* string){
 
 }
 
+int return_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    if (token_lookahead->type == TYPE_KEYWORD || !strcmp(token_lookahead->attribute, "end"))
+    {
+        // epsilon rule for just purely return with no return data
+        return SUCCESS;
+    }
+    if (token_lookahead->type == TYPE_IDENTIFIER || token_lookahead->type == TYPE_STRING || token_lookahead->type == TYPE_INTEGER || token_lookahead->type == TYPE_DECIMAL)
+    {
+        return return_list(token, token_lookahead, string);
+    }
+    //if (token_lookahead->type == TYPE_KEYWORD)
+    //{
+    //  // pokud je return nekde v tele funkce, tak je potreba skipnout vsechny tokeny az na konec deklarace????
+    //    while (strcmp(token_lookahead->attribute, "end"))
+    //    {
+    //        moveAhead(token, token_lookahead, string);
+    //    }
+    //    return SUCCESS;
+    //}
+    return FAILURE;
+}
+
+int return_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    return item(token, token_lookahead, string) && items(token, token_lookahead, string);
+
+}
+
+int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    moveAhead(token, token_lookahead, string);
+    if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
+    {
+        return SUCCESS;
+    }
+    if (token->type == TYPE_IDENTIFIER)
+    {
+        // check if it is a variable or function call
+        // jestli lookahead je leva zavorka, tak zavolej func_element
+        if (token_lookahead->spec == SPEC_OPEN)
+        {
+            return  func_element(token, token_lookahead, string);
+        }
+        // currently working with ID
+        return SUCCESS;
+    }
+    // taky je zde potreba checknout moznou expression
+    if (!strcmp(token->attribute, "EXPR"))
+    {
+        return SUCCESS;
+    }
+    return FAILURE;
+
+}
+
+int items(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    if (token_lookahead->type == TYPE_KEYWORD)
+    {
+        //epsilon rule
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ","))
+    {
+        return FAILURE;
+    }
+    return item(token, token_lookahead, string) && items(token, token_lookahead, string);
+}
+
+int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    moveAhead(token, token_lookahead, string);
+    if (token->type != TYPE_IDENTIFIER)
+    {
+        return FAILURE;
+    }
+    // now I am working with the ID of the variable
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ":"))
+    {
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (token_lookahead->type == TYPE_ASSIGNMENT)
+    {
+        return type(token, token_lookahead, string) && decl_assign(token, token_lookahead, string);
+    }
+    else
+    {
+        return type(token, token_lookahead, string);
+    }
+}
+
+int decl_assign(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    moveAhead(token, token_lookahead, string);
+    if (token->type != TYPE_ASSIGNMENT)
+    {
+        return FAILURE;
+    }
+    return item(token, token_lookahead, string);
+}
+
+int R_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    return item_list(token, token_lookahead, string);
+}
+
+int item_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    return item(token, token_lookahead, string) && items(token, token_lookahead, string);
+}
+
+int assignment(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    int result = L_assignment(token, token_lookahead, string);
+    moveAhead(token, token_lookahead, string);
+    if (token->type != TYPE_ASSIGNMENT){
+        return FAILURE;
+    }
+    return result && R_assignment(token, token_lookahead, string);
+}
+
+int L_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    // now I am working with the ID
+    if (!strcmp(token_lookahead->attribute, ","))
+    {
+        return ids(token, token_lookahead, string);
+    }
+    return SUCCESS;
+}
+
+int ids(token_t* token, token_t* token_lookahead, dynamic_string* string){
+    if (strcmp(token_lookahead->attribute, ","))
+    {
+        return SUCCESS;
+    }
+    moveAhead(token, token_lookahead, string);
+    if (strcmp(token->attribute, ",")){
+        return FAILURE;
+    }
+    moveAhead(token, token_lookahead, string);
+    // now I am working with the ID
+    return ids(token, token_lookahead, string);
+}
