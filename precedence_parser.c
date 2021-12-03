@@ -563,10 +563,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-///*
+/*
 int main()
 {
     return parser();
 }
-//*/
+*/
 
