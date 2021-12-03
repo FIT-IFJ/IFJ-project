@@ -55,7 +55,7 @@ void AST_insert_root(ast_node_t **ast){
         error(99, 0);
     }
     (*ast)->id = program_id;
-    child_arr_create((*ast)->child_arr);
+    child_arr_create((*ast));
     (*ast)->no_children = 0;
 }
 
@@ -129,11 +129,12 @@ void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute){
         child_arr_expand(parent);
     }
     parent->no_children++;
-    child_arr_create(parent->child_arr[parent->no_children].child_arr);
+    child_arr_create(&parent->child_arr[parent->no_children]);
     parent->child_arr[parent->no_children].no_children = 0;
     parent->child_arr[parent->no_children].id = id;
 
     parent->child_arr[parent->no_children].attribute = attribute;
+
 }
 
 /*
@@ -145,7 +146,7 @@ int main() {
     ast_node_t *stashed_node = ast;
 
     AST_add_child(stashed_node, func_def_id, string_a("foo"));
-
+    
     return 1;
 }
  */
