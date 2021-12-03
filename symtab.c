@@ -691,9 +691,9 @@ symtab_t *symtab_create(){
  * @param symtab tabulka symbolu na zniceni a dealokaci
  * @return 1 ok
  */
-int symtab_destroy(symtab_t **symtab) {
+void symtab_destroy(symtab_t **symtab) {
     if(!(*symtab)){
-        return 1;
+        return;
     }
     while ((*symtab)->var_symtab->top){
         end_block(*symtab);
@@ -703,7 +703,6 @@ int symtab_destroy(symtab_t **symtab) {
 
     free((*symtab));
     (*symtab) = NULL;
-    return 1;
 }
 
 

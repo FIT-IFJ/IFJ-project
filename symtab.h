@@ -6,10 +6,7 @@
 
 #define HASH_TABLE_SIZE 1 //pocet indexu hash tabulky
 
-#ifndef datatype
-#define datatype
-typedef enum {nil, integer, number, string} datatype_t; // typ typu promnenne
-#endif
+enum datatype_t; // typ typu promnenne
 
 struct symtab;    // neúplná deklarace struktury, obsah není zvenčí vidět
 typedef struct symtab symtab_t;
