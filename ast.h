@@ -116,5 +116,4 @@ attribute_t integer_a(int integerr);
  * @param attribute atribut nody, vutvoreny funkci integer_a, number_a, string_a nebo nil_a
  */
 void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute);
-/*
 
