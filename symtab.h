@@ -1,12 +1,11 @@
 // symtab.h by David Novák, IFJ 2021
 
+#ifndef symtab_h
+#define symtab_h
+
 #include <stdbool.h>
-#ifndef SYMTAB_H
-#define SYMTAB_H
-
+#include "datatype_t.h"
 #define HASH_TABLE_SIZE 1 //pocet indexu hash tabulky
-
-enum datatype_t; // typ typu promnenne
 
 struct symtab;    // neúplná deklarace struktury, obsah není zvenčí vidět
 typedef struct symtab symtab_t;
