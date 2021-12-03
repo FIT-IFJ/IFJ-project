@@ -43,8 +43,8 @@ char pp_table[NUM_OF_SYMB][NUM_OF_SYMB]={
 
 // struktury pre zasobnik
 typedef struct pp_stack_element{
-    int token_n;
-    token_t *token; // do I need it???
+    //int token_n;
+    token_t *token; //// I do need it!!!
     struct pp_stack_element *next;
 } pp_stack_element;
 
@@ -62,18 +62,21 @@ void stack_init(pp_stack* stack)
     stack->top_element = NULL;
 }
 
-
-void stack_push(pp_stack* stack, int token_n)     // pushne token_n, napr. pre '='
+////
+void stack_push(pp_stack* stack, token_t* token)     // pushne token_n, napr. pre '='
 {
-    printf("_____\n| %d |\n_____\n",token_n);
+   // printf("_____\n| '%s' |\n_____\n",token->attribute);
     pp_stack_element* new_element = (pp_stack_element*) malloc(sizeof(pp_stack_element));
-    if (new_element != NULL)
-    {
-        new_element->next = stack->top_element;
-        new_element->token_n = token_n;
+    if (new_element == NULL)
+        error(2);
+    new_element->next = stack->top_element;
+    new_element->token = (token_t *) malloc(sizeof(token_t));
+    if (new_element->token == NULL)
+        error(2);
+    *new_element->token = *token;
 
-        stack->top_element = new_element;
-    }
+    stack->top_element = new_element;
+    
 }
 
 
@@ -83,6 +86,7 @@ void stack_pop(pp_stack* stack)
     {
         pp_stack_element* stack_element = stack->top_element;
         stack->top_element = stack_element->next;
+        free(stack_element->token);
         free(stack_element);
     }
 }
@@ -96,16 +100,16 @@ pp_stack_element* stack_top(pp_stack* stack) // ??
 
 
 
-int stack_top_term(pp_stack* stack) // zobrazi najvrchnejsi terminal
+token_t* stack_top_term(pp_stack* stack) // zobrazi najvrchnejsi terminal
 {
 
     pp_stack_element* stack_element = stack->top_element;
     
-    while(stack_element->token_n == NONT)
+    while(stack_element->token->spec == NONT)   // pozor musis vytvorit token->spec = NONT
     {
         stack_element = stack_element->next;
     }
-    return stack_element->token_n;
+    return stack_element->token;
 } 
 
 
@@ -113,20 +117,24 @@ void stack_mark(pp_stack* stack)   //oznaci zaciatok pravidla '<'
 {
     pp_stack_element* stack_element = stack->top_element;
     pp_stack_element* new_element = (pp_stack_element*) malloc(sizeof(pp_stack_element));
+    new_element->token = (token_t *) malloc(sizeof(token_t));
+
     while (stack_element != NULL)
         {
-            if (stack_element == stack->top_element && stack_element->token_n != NONT)
+            if (stack_element == stack->top_element && stack_element->token->spec != NONT)
             {
                 new_element->next = stack_element;
                 stack->top_element = new_element;
-                new_element->token_n = MARK;
+                new_element->token->attribute = "[<]"; // for debug
+                new_element->token->spec = MARK;
                 return;
             }
-            else if (stack_element->next->token_n != NONT)
+            else if (stack_element->next->token->spec != NONT)
             {
                 new_element->next = stack_element->next;
                 stack_element->next = new_element;
-                new_element->token_n = MARK;
+                new_element->token->attribute = "[<]";  // for debug
+                new_element->token->spec = MARK;
                 return;
             }
             stack_element = stack_element->next;
@@ -152,23 +160,23 @@ void stack_dispose(pp_stack* stack)
 bool reduce(pp_stack* stack) // prevedie redukciu '>'
 {
     pp_stack_element* stack_element;
-    int token_n[3]= {-1,-1,-1};
+    int token_n[3]= {-1,-1,-1};     ////prerobit na token
     int count = 2;
     do
     {
-        stack_element = stack_top(stack);
-        if (stack_element->token_n == MARK)
-        {
+        stack_element = stack_top(stack);        
+        if (stack_element->token->spec == MARK)
+        {        
             stack_pop(stack);
             break;
         }
         else
         {
-            token_n[count] = stack_element->token_n;
+            token_n[count] = stack_element->token->spec;
             stack_pop(stack);
             count--;
         }
-    }while (stack_element != NULL || count <= 0);
+    }while (stack_element != NULL); // && count >= 0);
 
 
     // porovnavanie obsahu token_n[] podla rules
@@ -186,6 +194,7 @@ bool reduce(pp_stack* stack) // prevedie redukciu '>'
             case SPEC_MINU:
                 /* rule 2 */
                 return true;
+                break;
 
             case SPEC_MULT:
                 /* rule 3 */
@@ -270,7 +279,7 @@ bool reduce(pp_stack* stack) // prevedie redukciu '>'
 
 
 
-
+/*
 
 int convert(char* attribute)
 {
@@ -316,71 +325,110 @@ int convert(char* attribute)
     return code_n;
 }
 
+*/
 
 
+void push_nont(pp_stack* stack)
+{ 
+    token_t* token = malloc(sizeof(token_t));
+    if (token == NULL)
+        error(2);
+    token->spec = NONT;
+    token->attribute = "E"; // debug 
+    stack_push(stack, token); ////
+    free(token);
 
+}
 
+void print_stack(pp_stack* stack)   // function for debug
+{
+    pp_stack_element* stack_element;
+    DLLElement* DLL_element;
+    DLList *list = (DLList *)malloc (sizeof(DLList));
+    if (list == NULL)
+        error(2);
+    DLL_Init(list);
 
+    printf("\n");
+    stack_element = stack->top_element;
+    while (stack_element!=NULL)
+    {
+        DLL_InsertFirst(list,stack_element->token);
+        stack_element = stack_element->next;
+    }
+
+    DLL_element = list->first;
+    while(DLL_element != NULL)
+    {
+        printf("| '%s' ",DLL_element->token->attribute);
+        DLL_element = DLL_element->next;
+    }
+    printf("\n\n");
+
+    DLL_Dispose(list);
+    free(list);
+}
 
 
 void parse_expression (DLList *list)
 {
-    int stack_n;        // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
-    int token_n;        // hodnota na aktualneho tokenu (prava strana suradnice vramci tabulky)
-   
     pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
-    //// token_t* token = malloc(sizeof(token_t));
-    if (stack == NULL )//// || token == NULL)
+    token_t* token = malloc(sizeof(token_t));
+    if (stack == NULL || token == NULL)
         error(2);
 
     stack_init(stack);
-    stack_push(stack, DOLR); //// token->spec = DOLR; stack_push(stack, token->spec);
+
+    token->spec = DOLR;
+    token->attribute = "$"; // for debug
+    stack_push(stack, token);
 
     DLLElement *element;
     element = list->first;
-    token_n = element->token->spec; //// token = element->token;
-
+    token = element->token; // hodnota na aktualneho tokenu (prava strana suradnice vramci tabulky)
+    int stack_n;            // hodnota na vrcholu zasobnika (lava strana suradnice vramci tabulky)
+   
 
     while (true) //length of array
     {
-        stack_n = stack_top_term(stack); //// stack_token = stack_top_term(stack); 
+        stack_n = (stack_top_term(stack))->spec; //// stack_token = stack_top_term(stack); 
 
-        printf("%d : %d\nsymbol ..%c\n",stack_n,token_n,pp_table[stack_n][token_n]);
+        print_stack(stack); //for debug
+        printf("stack >>  %d : %d  << token\ntable symbol [%c]\n",stack_n,token->spec,pp_table[stack_n][token->spec]); // for debug
 
-        switch (pp_table[stack_n][token_n]) //// switch (pp_table[stack_n][token_n])
+        switch (pp_table[stack_n][token->spec])
         {
         case '=':
-            stack_push(stack, token_n); //// stack_push(stack, token);
+            stack_push(stack, token);
             element = element->next;
-            token_n = element->token->spec; //// token = element->token;
+            *token = *element->token;
             break;
         
         case '<':
             stack_mark(stack);
-            stack_push(stack, token_n); //// stack_push(stack, token);
+            stack_push(stack, token);
             element = element->next;
-            token_n = element->token->spec; //// token = element->token;
+            *token = *element->token;
             break;
 
-        case '>':
+        case '>':   // prerobit na void !!
             if (! reduce(stack)) printf("**Syntax error**\n");  // vyberie tokeny zo zasobniku az po MARK ('<'), porovna s pravidlami a redukuje
-            stack_push(stack, NONT);
+            push_nont(stack);
             break;
 
         case '#':
             stack_dispose(stack);
+            free(stack);
             printf("Successfully ended\n");
             return;
             break;
 
         default:
-            printf("**ERROR**\n");
+            stack_dispose(stack);
+            error(1);
             break;
         }
     }
-    if (!stack_empty)
-        printf("**Stack is not empty**\n");
-    return;
 
 }
 
@@ -441,6 +489,8 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
 {
     DLL_Dispose(list);      // presitotu premaze pri znovu-uzivani
     DLList *pp_list = (DLList *) malloc (sizeof(DLList));   //pp_list pre parsovanie vyrazu
+    if (pp_list == NULL)
+        error(2);
     DLL_Init(pp_list);
     while(token->type != TYPE_EOF)
     {
@@ -450,7 +500,7 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
         DLL_InsertLast(pp_list, token);
         
          //ak nasleduje keyword, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
-        if (pp_list->last->token->type == TYPE_KEYWORD || (pp_list->last->token->type == TYPE_DATATYPE && pp_list->last->token->spec != SPEC_IDOP))     
+        if (pp_list->last->token->type == TYPE_KEYWORD || (pp_list->last->token->type == TYPE_DATATYPE && pp_list->last->token->spec != SPEC_IDOP) || strcmp(pp_list->last->token->attribute,",") == 0)     
         {
             DLL_to_DLL(pp_list, list, token);
             break;
@@ -471,6 +521,7 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string)
                 break;
             }
         }
+        //get_token(token, string);
     }
     if (pp_list->last != NULL)
     {
@@ -548,10 +599,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-/*
+///*
 int main()
 {
     return parser();
 }
-*/
+//*/
 

@@ -13,7 +13,10 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "scanner.h"
+#ifndef SCANNER_H
+#define SCANNER_H
+	#include "scanner.h"
+#endif
 
 typedef struct DLLElement {
 	token_t *token;
@@ -23,7 +26,7 @@ typedef struct DLLElement {
 
 typedef struct {
 	DLLElement* first;
-	DLLElement* active;
+//	DLLElement* active;
 	DLLElement* last;
 } DLList;
 

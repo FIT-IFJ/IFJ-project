@@ -47,7 +47,7 @@ void error(int err_num)
 
 void DLL_Init( DLList *list ) 
 {
-    list->active = NULL;
+   // list->active = NULL;
     list->first = NULL;
     list->last = NULL;
 }
@@ -100,8 +100,8 @@ void DLL_DeleteLast( DLList *list )
     DLLElement *del_element;
     if (list->last != NULL) {
         del_element = list->last;
-        if (list->active == list->last)
-            list->active = NULL;
+       // if (list->active == list->last)
+       //     list->active = NULL;
         
         if (list->first == list->last)
         {
@@ -113,6 +113,7 @@ void DLL_DeleteLast( DLList *list )
             list->last = list->last->prev;
             list->last->next = NULL;
         }
+        free(del_element->token);
         free(del_element);
     }
 }
@@ -131,7 +132,7 @@ void DLL_Dispose( DLList *list )
         free(del_element);
     }
 
-    list->active = NULL;
+  //  list->active = NULL;
     list->first = NULL;
     list->last = NULL;
 }
@@ -179,8 +180,8 @@ void DLL_DeleteFirst( DLList *list )
     if (list->first != NULL)
     {
         del_element = list->first;
-        if (list->active == list->first)
-            list->active = NULL;
+      //  if (list->active == list->first)
+      //      list->active = NULL;
         
         if (list->first == list->last)
         {
@@ -192,6 +193,7 @@ void DLL_DeleteFirst( DLList *list )
             list->first = list->first->next;
             list->first->prev = NULL;
         }
+        free(del_element->token);
         free(del_element);
     }
 
@@ -201,7 +203,7 @@ void DLL_DeleteFirst( DLList *list )
 
 
 // *********************** currently unused DLL functions **************************
-
+/*
 
 void DLL_First( DLList *list )
 {
@@ -343,3 +345,4 @@ int DLL_IsActive( DLList *list )
     return (list->active != NULL) ? true : false;
 
 }
+*/
