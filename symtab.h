@@ -1,5 +1,6 @@
 // symtab.h by David Novák, IFJ 2021
 
+#include <stdbool.h>
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
