@@ -35,9 +35,9 @@ char pp_table[NUM_OF_SYMB][NUM_OF_SYMB]={
 };
 
 
- #define DOLR 16  // '$' len pre precedencnu tabulku
- #define MARK 17  // nahradza '<' v zasobniku
- #define NONT 18
+ //#define SPEC_DOLR 16  // '$' len pre precedencnu tabulku
+ //#define SPEC_MARK 17  // nahradza '<' v zasobniku
+ //#define SPEC_NONT 18
 
 
 
@@ -105,7 +105,7 @@ token_t* stack_top_term(pp_stack* stack) // zobrazi najvrchnejsi terminal
 
     pp_stack_element* stack_element = stack->top_element;
     
-    while(stack_element->token->spec == NONT)   // pozor musis vytvorit token->spec = NONT
+    while(stack_element->token->spec == SPEC_NONT)   // pozor musis vytvorit token->spec = SPEC_NONT
     {
         stack_element = stack_element->next;
     }
@@ -121,20 +121,20 @@ void stack_mark(pp_stack* stack)   //oznaci zaciatok pravidla '<'
 
     while (stack_element != NULL)
         {
-            if (stack_element == stack->top_element && stack_element->token->spec != NONT)
+            if (stack_element == stack->top_element && stack_element->token->spec != SPEC_NONT)
             {
                 new_element->next = stack_element;
                 stack->top_element = new_element;
                 new_element->token->attribute = "[<]"; // for debug
-                new_element->token->spec = MARK;
+                new_element->token->spec = SPEC_MARK;
                 return;
             }
-            else if (stack_element->next->token->spec != NONT)
+            else if (stack_element->next->token->spec != SPEC_NONT)
             {
                 new_element->next = stack_element->next;
                 stack_element->next = new_element;
                 new_element->token->attribute = "[<]";  // for debug
-                new_element->token->spec = MARK;
+                new_element->token->spec = SPEC_MARK;
                 return;
             }
             stack_element = stack_element->next;
@@ -160,20 +160,20 @@ void stack_dispose(pp_stack* stack)
 void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>'
 {
     pp_stack_element* stack_element;
-    
     token_t *token[3];
     for (int i = 0; i < 3; i++)
     {
         token[i] = malloc(sizeof(token_t));
         if (token == NULL)
             error(2);
+        token[i]->spec = SPEC_EMPTY;
     }
     
     int count = 2;
     do
     {
         stack_element = stack_top(stack);        
-        if (stack_element->token->spec == MARK)
+        if (stack_element->token->spec == SPEC_MARK)
         {        
             stack_pop(stack);
             break;
@@ -189,7 +189,7 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>'
 
     // porovnavanie obsahu token[]->spec podla rules
 
-    if (token[0]->spec == NONT && token[2]->spec == NONT)
+    if (token[0]->spec == SPEC_NONT && token[2]->spec == SPEC_NONT)
     {
         switch (token[1]->spec)
         {
@@ -245,27 +245,26 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>'
                 error(2);
                 break;
         }
-
         printf("( %i.)  E -> E %s E\n",token[1]->spec, token[1]->attribute);
         if (AST_list != NULL)
             DLL_InsertLast(AST_list,token[1]);
 
     }
-    else if ( token[0]->spec == '\0' && token[1]->spec == SPEC_HASH && token[2]->spec == NONT)
+    else if ( token[0]->spec ==  SPEC_EMPTY && token[1]->spec == SPEC_HASH && token[2]->spec == SPEC_NONT)
     {
         /* rule 13 */
         printf("( %i.)  E -> %s E\n",token[1]->spec, token[1]->attribute);
         if (AST_list != NULL)
             DLL_InsertLast(AST_list,token[1]);
     }
-    else if (token[0]->spec == '\0' && token[1]->spec == '\0' && token[2]->spec == SPEC_IDOP)
+    else if (token[0]->spec == SPEC_EMPTY && token[1]->spec == SPEC_EMPTY && token[2]->spec == SPEC_IDOP)
     {
         /* rule 14 */
         printf("( %i.)  E -> '%s' \n",token[2]->spec, token[2]->attribute);
         if (AST_list != NULL)
             DLL_InsertLast(AST_list,token[2]);
     }
-    else if (token[0]->spec == SPEC_OPEN && token[1]->spec == NONT && token[2]->spec == SPEC_CLOS)
+    else if (token[0]->spec == SPEC_OPEN && token[1]->spec == SPEC_NONT && token[2]->spec == SPEC_CLOS)
     {
         /* rule 15 */
         printf("( 15.)  E -> ( E )\n");
@@ -273,6 +272,10 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>'
     else
         error(2); // syntax error
 
+    for (int i = 0; i < 3; i++)
+    {
+        free(token[i]);
+    }
 }
 
 
@@ -281,7 +284,7 @@ void push_nont(pp_stack* stack)
     token_t* token = malloc(sizeof(token_t));
     if (token == NULL)
         error(2);
-    token->spec = NONT;
+    token->spec = SPEC_NONT;
     token->attribute = "E"; // for debug 
     stack_push(stack, token);
     free(token);
@@ -328,7 +331,7 @@ void parse_expression (DLList *list, DLList *AST_list)
 
     stack_init(stack);
 
-    token->spec = DOLR;
+    token->spec = SPEC_DOLR;
     token->attribute = "$"; // for debug
     stack_push(stack, token);
 
@@ -361,7 +364,7 @@ void parse_expression (DLList *list, DLList *AST_list)
             break;
 
         case '>':   // prerobit na void !!
-            reduce(stack, AST_list);  // vyberie tokeny zo zasobniku az po MARK ('<'), porovna s pravidlami a redukuje
+            reduce(stack, AST_list);  // vyberie tokeny zo zasobniku az po SPEC_MARK ('<'), porovna s pravidlami a redukuje
             push_nont(stack);
             break;
 
@@ -399,7 +402,7 @@ void DLL_fill(DLList *list, token_t *token, dynamic_string *string) // for debug
         printf("inserted[%s]\n", token->attribute);
 
     }while (token->type != TYPE_EOF);
-    list->last->token->spec = DOLR;
+    list->last->token->spec = SPEC_DOLR;
 }
 
 void DLL_print(DLList *AST_list)    // for debug
@@ -454,6 +457,7 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST
     DLL_Init(pp_list);
     while(token->type != TYPE_EOF)
     {
+        //get_token(token, string);
         if (token->spec == SPEC_NIL)
             token->spec = SPEC_IDOP; // nil je v precedencnom parseri spracovavany ako operand
         DLL_InsertLast(pp_list, token);
@@ -485,7 +489,7 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST
     if (pp_list->last != NULL)
     {
         printf("\n_____________________________PP_PARSER________________________________\n");
-        token->spec = DOLR;
+        token->spec = SPEC_DOLR;
         DLL_InsertLast( pp_list, token);
         parse_expression(pp_list, AST_list);      //docasny vypis pre znazornenie prace PSA parseru
         if (AST_list != NULL)
@@ -541,7 +545,7 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
                     if (element->token->spec == SPEC_RETURN || element->token->spec == SPEC_IF || element->token->spec == SPEC_WHILE || strcmp(element->token->attribute,",") == 0)
                     {
                         get_token(token,string);
-                        //*token = *element->token; // ak get_token je na zaciatku while vo funkcii
+                        //*token = *element->token;
                         DLL_parse(list,token,string, AST_list);
                         if (list->last != NULL)//
                         {

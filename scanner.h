@@ -43,6 +43,11 @@ typedef enum {
     SPEC_OPEN,  // '(' 
     SPEC_CLOS,  // ')' 
 
+    SPEC_DOLR,
+    SPEC_MARK,
+    SPEC_NONT,
+    SPEC_EMPTY,
+
     // KEYWORDS
     SPEC_DO,
     SPEC_ELSE,
@@ -63,6 +68,7 @@ typedef enum {
     SPEC_STRING,
 
     SPEC_OTHERS, // ostatni
+
 } Specification;
 
 // Token (obsahuje: typ tokenu, hodnotu, umístění v kódu)
