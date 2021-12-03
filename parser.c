@@ -316,12 +316,22 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
 int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
     // the current token is "if"
     int result = 1;
-    moveAhead(token, token_lookahead, string);
-    if (strcmp(token->attribute, "EXPR"))
+    DLList* list = (DLList *) malloc(sizeof(DLList));
+    DLL_Init(list);
+    DLL_parse(list, token_lookahead, string);
+    DLLElement* vraceny_token = list->first;
+    if (vraceny_token == NULL)
     {
         return FAILURE;
     }
-    moveAhead(token, token_lookahead, string);
+    //while (vraceny_token != NULL){
+    //    // v liste se nachazi omylem ukradnuty token
+    //    vraceny_token = vraceny_token->next;
+    //}
+    *token = *vraceny_token->token;
+    DLL_Dispose(list);
+    free(list);
+    get_token(token_lookahead, string);
     if (token->spec != SPEC_THEN)
     {
         return FAILURE;
@@ -359,13 +369,19 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
 
 int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
     // the current token is "while"
-    moveAhead(token, token_lookahead, string);
-    if (strcmp(token->attribute, "EXPR"))
+    DLList* list = (DLList *) malloc(sizeof(DLList));
+    DLL_Init(list);
+    DLL_parse(list, token_lookahead, string);
+    DLLElement* vraceny_token = list->first;
+    if (vraceny_token == NULL)
     {
-        // hardcoded for EXPR until I fix compatibility with PP
         return FAILURE;
     }
-    moveAhead(token, token_lookahead, string);
+    printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
+    *token = *vraceny_token->token;
+    DLL_Dispose(list);
+    free(list);
+    get_token(token_lookahead, string);
     if (token->spec != SPEC_DO)
     {
         return FAILURE;
@@ -442,7 +458,7 @@ int args(token_t* token, token_t* token_lookahead, dynamic_string* string){
 }
 
 int return_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    if (token_lookahead->type == TYPE_KEYWORD || !strcmp(token_lookahead->attribute, "end"))
+    if (token_lookahead->type == TYPE_KEYWORD)
     {
         // epsilon rule for just purely return with no return data
         return SUCCESS;
