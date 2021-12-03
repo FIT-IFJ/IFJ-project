@@ -1,4 +1,8 @@
+#ifndef ast_h
+#define ast_h
+
 #include <stdbool.h>
+#include "datatype_t.h"
 
 /**
  * Id/typ nody ast. Podle toho generato pozna, kterou konstrukci dany node reprezentuje, jaky ma ocekavat atribut a
@@ -21,9 +25,6 @@ typedef enum id {   //attribute //children
     constant_id,    //value     //
     body_id         //          //n prikazu
 } node_id_t;
-
-
-typedef enum {nil, integer, number, string} datatype_t; // typ typu promnenne
 
 /**
  * Typ atributu nody, je v nem ulozeny atribut na urcitem miste podle typu
@@ -116,5 +117,5 @@ attribute_t integer_a(int integerr);
  * @param attribute atribut nody, vutvoreny funkci integer_a, number_a, string_a nebo nil_a
  */
 void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute);
-/*
 
+#endif

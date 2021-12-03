@@ -7,54 +7,6 @@
 #define INIT_ARR_SIZE 4 //pocatecni velikost pole deti
 
 /**
- * Id/typ nody ast. Podle toho generato pozna, kterou konstrukci dany node reprezentuje, jaky ma ocekavat atribut a
- * jake ma ocekavat deti/kde
- */
-typedef enum id {   //attribute //children
-    program_id,     //          //0...n func_def; 0...n func_call
-    func_def_id,    //func_name //1st returns; 2nd params, 3rd (func)body
-    while_id,       //          //1st condition; 2nd (while)body
-    branch_id,      //          //1st condition; 2nd (if)body, 3rd (else)body
-    condition_id,   //operator  //1st (left)expr; 2nd (right)expr
-    operation_id,   //operator  //1st (left)expr; 2nd (right)expr
-    var_declare_id, //var_name  //
-    assign_id,      //count     //count var_name; count expr or func_call
-    func_call_id,   //func_name //n params
-    params_id,      //          //n var
-    returns_id,     //count     //
-    return_id,      //          //n expr
-    variable_id,    //var_name  //
-    constant_id,    //value     //
-    body_id         //          //n prikazu
-} node_id_t;
-
-
-typedef enum {nil, integer, number, string} datatype_t; // typ typu promnenne
-
-/**
- * Typ atributu nody, je v nem ulozeny atribut na urcitem miste podle typu
- */
-typedef struct attribute{
-    datatype_t saved_type;
-    char* name;
-    double number;
-    int integer;
-    bool nil;
-    datatype_t type;
-} attribute_t;
-
-/**
- * Typ nody, obsahuje id, atribut(data) a pole deti
- */
-typedef struct ASTNode {
-    node_id_t id;               //id
-    attribute_t attribute;      //atribut
-    int child_arr_size;         //pocet deti
-    int no_children;            //pocet deti
-    struct ASTNode* child_arr;  //děti, dynamické pole
-} ast_node_t;
-
-/**
  * @brief Pomocna funkce k AST_add_child, je to vlastne kostruktor nafukovaciho pole
  * @param node Noda, ve ktere bude pole vytvoreno
  */
@@ -103,7 +55,7 @@ void AST_insert_root(ast_node_t **ast){
         error(99, 0);
     }
     (*ast)->id = program_id;
-    child_arr_create((*ast)->child_arr);
+    child_arr_create((*ast));
     (*ast)->no_children = 0;
 }
 
@@ -177,11 +129,12 @@ void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute){
         child_arr_expand(parent);
     }
     parent->no_children++;
-    child_arr_create(parent->child_arr[parent->no_children].child_arr);
+    child_arr_create(&parent->child_arr[parent->no_children]);
     parent->child_arr[parent->no_children].no_children = 0;
     parent->child_arr[parent->no_children].id = id;
 
     parent->child_arr[parent->no_children].attribute = attribute;
+
 }
 
 /*
@@ -193,7 +146,7 @@ int main() {
     ast_node_t *stashed_node = ast;
 
     AST_add_child(stashed_node, func_def_id, string_a("foo"));
-
+    
     return 1;
 }
  */
