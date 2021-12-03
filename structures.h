@@ -15,7 +15,7 @@
 
 #ifndef SCANNER_H
 #define SCANNER_H
-	#include "scanner.h"
+#include "scanner.h"
 #endif
 
 typedef struct DLLElement {
