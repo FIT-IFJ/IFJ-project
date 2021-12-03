@@ -22,8 +22,10 @@ typedef enum id {   //attribute //children
     body_id         //          //n prikazu
 } node_id_t;
 
-
+#ifndef datatype
+#define datatype
 typedef enum {nil, integer, number, string} datatype_t; // typ typu promnenne
+#endif
 
 /**
  * Typ atributu nody, je v nem ulozeny atribut na urcitem miste podle typu
