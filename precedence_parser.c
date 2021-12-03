@@ -454,7 +454,6 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST
     DLL_Init(pp_list);
     while(token->type != TYPE_EOF)
     {
-        //get_token(token, string);
         if (token->spec == SPEC_NIL)
             token->spec = SPEC_IDOP; // nil je v precedencnom parseri spracovavany ako operand
         DLL_InsertLast(pp_list, token);
@@ -531,6 +530,7 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
         if (token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->spec == SPEC_WHILE || token->type == TYPE_ASSIGNMENT) // Tejd si sam triedi
         {
+            get_token(token,string);
             DLL_parse(list,token,string,AST_list);   // volanie pre parsovanie pripadneho vyrazu
             if (list->last != NULL)
             {
@@ -540,8 +540,8 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
                     printf("\n---> %s,%d,%d\n",element->token->attribute,element->token->type,element->token->spec);    // cinnost parseru -> moze obsahovat "keyword","datatype","identifier"
                     if (element->token->spec == SPEC_RETURN || element->token->spec == SPEC_IF || element->token->spec == SPEC_WHILE || strcmp(element->token->attribute,",") == 0)
                     {
-                        printf("YES\n");
-                        *token = *element->token;
+                        get_token(token,string);
+                        //*token = *element->token; // ak get_token je na zaciatku while vo funkcii
                         DLL_parse(list,token,string, AST_list);
                         if (list->last != NULL)//
                         {
@@ -570,10 +570,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-/*
+///*
 int main()
 {
     return parser();
 }
-*/
+//*/
 
