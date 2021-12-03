@@ -7,7 +7,6 @@
 /* ************************************************************************** */
 
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +17,9 @@
 #include "scanner.h"
 #endif
 
+#include "our_error.h"
+
+
 typedef struct DLLElement {
 	token_t *token;
     struct DLLElement *prev;
@@ -26,12 +28,9 @@ typedef struct DLLElement {
 
 typedef struct {
 	DLLElement* first;
-//	DLLElement* active;
 	DLLElement* last;
 } DLList;
 
-
-void error(int err_num);
 
 
 void DLL_Init( DLList *list );
