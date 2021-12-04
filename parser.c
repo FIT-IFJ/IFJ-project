@@ -14,16 +14,21 @@
 #endif
 
 #include "parser.h"
- #include "precedence_parser.h"
+#include "precedence_parser.h"
+#include "ast.h"
+
 
 #define SUCCESS 1
 #define FAILURE 0
 
 
 int main(){
-    token_t* new_token = malloc(sizeof(token_t));
+    token_t* new_token = malloc(sizeof(token_t)); // todo check if this is the correct way to allocate
     token_t* new_token_lookahead = malloc(sizeof(token_t));
     dynamic_string* string = string_init();
+    ast_node_t* AST; // = malloc(sizeof(ast_node_t));
+    AST_insert_root(&AST);
+    //AST->child_arr[0];
     printf("-- PARSING STARTED --\n");
     int result = program(new_token, new_token_lookahead, string);
     int syntax_control_result = result ? 0 : 1;
@@ -318,7 +323,9 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     int result = 1;
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
-    DLL_parse(list, token_lookahead, string);
+    DLList* AST_list = (DLList *) malloc(sizeof(DLList));
+    DLL_Init(AST_list);
+    DLL_parse(list, token_lookahead, string, AST_list);
     DLLElement* vraceny_token = list->first;
     if (vraceny_token == NULL)
     {
@@ -371,7 +378,9 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
     // the current token is "while"
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
-    DLL_parse(list, token_lookahead, string);
+    DLL_Init(list);
+    DLList* AST_list = (DLList *) malloc(sizeof(DLList));
+    DLL_parse(list, token_lookahead, string, AST_list);
     DLLElement* vraceny_token = list->first;
     if (vraceny_token == NULL)
     {
@@ -485,7 +494,27 @@ int return_list(token_t* token, token_t* token_lookahead, dynamic_string* string
 }
 
 int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    moveAhead(token, token_lookahead, string);
+    // COMMENTED FOR NOW SINCE PRECEDENCE ANALYSIS CURRENTLY BREAKS AT ITEM LISTS
+    DLList* list = (DLList *) malloc(sizeof(DLList));
+    DLL_Init(list);
+    DLList* AST_list = (DLList *) malloc(sizeof(DLList));
+    DLL_Init(AST_list);
+    DLL_parse(list, token_lookahead, string, AST_list);
+    DLLElement* vraceny_token = list->first;
+    if (vraceny_token == NULL)
+    {
+        return FAILURE;
+    }
+    //while (vraceny_token != NULL){
+    //    // v liste se nachazi omylem ukradnuty token
+    //    vraceny_token = vraceny_token->next;
+    //}
+    printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
+    *token = *vraceny_token->token;
+    DLL_Dispose(list);
+    free(list);
+    get_token(token_lookahead, string);
+    //moveAhead(token, token_lookahead, string);
     if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
     {
         return SUCCESS;
