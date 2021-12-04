@@ -15,19 +15,16 @@
 
 #include "parser.h"
 #include "precedence_parser.h"
-#include "ast.h"
 
 
 #define SUCCESS 1
 #define FAILURE 0
-
+bool podezrely_token = false;
 
 int main(){
     token_t* new_token = malloc(sizeof(token_t)); // todo check if this is the correct way to allocate
     token_t* new_token_lookahead = malloc(sizeof(token_t));
     dynamic_string* string = string_init();
-    ast_node_t* AST; // = malloc(sizeof(ast_node_t));
-    AST_insert_root(&AST);
     //AST->child_arr[0];
     printf("-- PARSING STARTED --\n");
     int result = program(new_token, new_token_lookahead, string);
@@ -47,9 +44,11 @@ void report_error(char* msg, int line){
 }
 int program(token_t* token, token_t* token_lookahead, dynamic_string* string){
     int result;
+    ast_node_t* AST;
+    AST_insert_root(&AST);
     result = prologue(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
-    return result && program_body(token, token_lookahead, string);
+    return result && program_body(token, token_lookahead, string, AST);
 
 }
 int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string){
@@ -65,7 +64,7 @@ int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string){
     return FAILURE;
 
 }
-int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
 
     if (token_lookahead->type == TYPE_EOF)
     {
@@ -76,17 +75,17 @@ int program_body(token_t* token, token_t* token_lookahead, dynamic_string* strin
     if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "global")))
     {
         // <program_body> -> <func_decl><program_body>
-        return func_decl(token, token_lookahead, string) && program_body(token, token_lookahead, string);
+        return func_decl(token, token_lookahead, string) && program_body(token, token_lookahead, string, parent_node);
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "function")))
     {
         // <program_body> -> <func_def><program_body>
-        return func_def(token, token_lookahead, string) && program_body(token, token_lookahead, string);
+        return func_def(token, token_lookahead, string, parent_node) && program_body(token, token_lookahead, string, parent_node);
     }
     else if ((token->type == TYPE_IDENTIFIER) && (token_lookahead->type == TYPE_OPERATOR) && (!strcmp(token_lookahead->attribute, "(")))
     {
         // <program_body> -> <func_call><program_body>
-        return func_call(token, token_lookahead, string) && program_body(token, token_lookahead, string);
+        return func_call(token, token_lookahead, string, parent_node) && program_body(token, token_lookahead, string, parent_node);
     }
     return FAILURE;
 }
@@ -143,7 +142,7 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
 
 }
 
-int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // the current TOKEN is the ID of function
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "("))
@@ -216,9 +215,10 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) 
 
 }
 
-int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node) {
     int result = 0;
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
+    AST_add_child(parent_node, func_def_id, string_a(token_lookahead->attribute));
     moveAhead(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "(")) {
@@ -294,8 +294,13 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
         return SUCCESS;
     }
     // probably gonna have to add more keywords(?) checks to end while statements and others
-
-    moveAhead(token, token_lookahead, string);
+    // todo not sure about this strat yet, might work
+    if (podezrely_token){
+        podezrely_token = false;
+    }
+    else{
+        moveAhead(token, token_lookahead, string);
+    }
     if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "if"))){
         return if_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
     }
@@ -378,8 +383,8 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
     // the current token is "while"
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
-    DLL_Init(list);
     DLList* AST_list = (DLList *) malloc(sizeof(DLList));
+    DLL_Init(AST_list);
     DLL_parse(list, token_lookahead, string, AST_list);
     DLLElement* vraceny_token = list->first;
     if (vraceny_token == NULL)
@@ -513,8 +518,12 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
+    if (token->spec == SPEC_WHILE){
+        podezrely_token = true;
+    }
     get_token(token_lookahead, string);
     //moveAhead(token, token_lookahead, string);
+    return SUCCESS;
     if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
     {
         return SUCCESS;
@@ -530,22 +539,17 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
         // currently working with ID
         return SUCCESS;
     }
-    // taky je zde potreba checknout moznou expression
-    if (!strcmp(token->attribute, "EXPR"))
-    {
-        return SUCCESS;
-    }
     return FAILURE;
 
 }
 
 int items(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    if (token_lookahead->type == TYPE_KEYWORD)
+    if (token->type == TYPE_KEYWORD) // todo changed from lookahead to token
     {
         //epsilon rule
         return SUCCESS;
     }
-    moveAhead(token, token_lookahead, string);
+    //moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ","))
     {
         return FAILURE;

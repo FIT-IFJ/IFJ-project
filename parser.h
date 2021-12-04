@@ -10,15 +10,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "ast.h"
 
 
 
 int program(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int prologue(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int program_body(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
 int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
+int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
 int type_list(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int types(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int type(token_t* token, token_t* token_lookahead, dynamic_string* string);
