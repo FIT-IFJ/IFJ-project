@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS = -std=c99
 OBJECTS = ast.o dynamic_string.o our_error.o parser.o precedence_parser.o scanner.o structures.o symtab.o
 
-.PHONY: program clean ast.o dynamic_string.o our_error.o parser.o precedence_parser.o scanner.o structures.o symtab.o
+.PHONY: program clean
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $<
