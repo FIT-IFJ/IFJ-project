@@ -28,4 +28,4 @@ program: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o compiler
 	
 clean:
-	rm -f *.o
+	rm -f *.o compiler
