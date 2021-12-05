@@ -44,6 +44,8 @@ typedef struct pp_stack{
 } pp_stack;
 
 
+symtab_t* sym_table;        // extern symtab_t* sym_table;  ??
+
 
 void stack_init(pp_stack* stack)
 {
@@ -138,8 +140,26 @@ void stack_dispose(pp_stack* stack)
 }
 
 
-void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>'
+void push_nont(pp_stack* stack, token_t* nont_token)
+{ 
+    token_t* token = malloc(sizeof(token_t));
+    if (token == NULL)
+        error(99, 0);
+    
+    *token = *nont_token;       // gets line and type from source token
+    token->spec = SPEC_NONT;
+    stack_push(stack, token);
+    free(token);
+
+}
+
+
+void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pravidla
 {
+    //int nont_type;
+    token_t* nont_token = malloc(sizeof(token_t));
+    if ( nont_token == NULL )
+        error(99, 0);
     pp_stack_element* stack_element;
     token_t *token[3];
     for (int i = 0; i < 3; i++)
@@ -167,105 +187,188 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>'
         }
     }while (stack_element != NULL); // && count >= 0);
 
+
     // porovnavanie obsahu token[]->spec podla rules
     if (token[0]->spec == SPEC_NONT && token[2]->spec == SPEC_NONT)
     {
+
         switch (token[1]->spec)
         {
+            /* rule 1: [ E -> E + E ] */
             case SPEC_PLUS:
-                /* rule 1 */
-                break;
-
+                
+            /* rule 2: [ E -> E - E ] */
             case SPEC_MINU:
-                /* rule 2 */
-                break;
 
+            /* rule 3: [ E -> E * E ] */
             case SPEC_MULT:
-                /* rule 3 */
+                // spravanie dat. typov pri '+','-','*': int + int = int, int + dec = dec, dec + dec = dec, else error
+                *nont_token = *token[0];
+
+                if (token[0]->type == TYPE_INTEGER && token[2]->type == TYPE_INTEGER)
+                    nont_token->type = TYPE_INTEGER;
+                else if ((token[0]->type == TYPE_INTEGER || token[0]->type == TYPE_DECIMAL) && (token[2]->type == TYPE_INTEGER || token[2]->type == TYPE_DECIMAL))
+                    nont_token->type = TYPE_DECIMAL;
+                else
+                    error(6, token[0]->line);
+
+                if (strcmp(token[0]->attribute, "0") == 0 && strcmp(token[2]->attribute, "0") == 0 )
+                    nont_token->attribute = "0";
+                else if (token[1]->spec == SPEC_MULT && ( strcmp(token[0]->attribute, "0") == 0 || strcmp(token[2]->attribute, "0") == 0 ))
+                    nont_token->attribute = "0";
+                else
+                    nont_token->attribute = "E";
+
                 break;
 
+
+            /* rule 4: [ E -> E / E ] */
             case SPEC_DIVF:
-                /* rule 4 */
+                // spravanie dat. typov pri '/': int / int = dec, int / dec = dec, dec / dec = dec, else error
+                *nont_token = *token[0];
+
+                if ((token[0]->type == TYPE_INTEGER || token[0]->type == TYPE_DECIMAL) && (token[2]->type == TYPE_INTEGER || token[2]->type == TYPE_DECIMAL))
+                    nont_token->type = TYPE_DECIMAL;
+                else
+                    error(6, token[0]->line);
+                
+                if (strcmp(token[0]->attribute, "0") != 0)
+                    nont_token->attribute = "E";
+                if (strcmp(token[2]->attribute, "0") == 0)
+                    error(9, token[2]->line);
+
                 break;
 
+
+            /* rule 5: [ E -> E // E ] */
             case SPEC_DIVI:
-                /* rule 5 */
+                // spravanie dat. typov pri '//': int // int = int, else error
+                *nont_token = *token[0];
+
+                if (token[0]->type == TYPE_INTEGER && token[2]->type == TYPE_INTEGER)
+                    nont_token->type = TYPE_INTEGER;
+                else
+                    error(6, token[0]->line);
+
+                if (strcmp(token[0]->attribute, "0") != 0)
+                    nont_token->attribute = "E";
+                if (strcmp(token[2]->attribute, "0") == 0)
+                    error(9, token[2]->line);
+
                 break;
 
+
+            /* rule 6: [ E -> E < E ] */
             case SPEC_LESS:
-                /* rule 6 */
-                break;
             
+            /* rule 7: [ E -> E <= E ] */
             case SPEC_LEEQ:
-                /* rule 7 */
-                break;
 
+            /* rule 8: [ E -> E > E ] */
             case SPEC_GREA:
-                /* rule 8 */
-                break;
 
+            /* rule 9: [ E -> E > E ] */
             case SPEC_GREQ:
-                /* rule 9 */
+                // spravanie dat. typov pri '<','<=','>','>=': int < int = bool, int < dec = bool, dec < dec = bool, string < string = bool, else error
+                *nont_token = *token[0];
+
+                if ((token[0]->type == TYPE_INTEGER || token[0]->type == TYPE_DECIMAL) && (token[2]->type == TYPE_INTEGER || token[2]->type == TYPE_DECIMAL))
+                    nont_token->type = TYPE_BOOL;
+                else if (token[0]->type == TYPE_INTEGER && token[2]->type == TYPE_STRING)
+                    nont_token->type = TYPE_BOOL;
+                else
+                    error(6, token[0]->line);
+
+                nont_token->attribute = "E";
+
                 break;
 
+            /* rule 10: [ E -> E == E ] */
             case SPEC_EQUA:
-                /* rule 10 */
+
+            /* rule 11: [ E -> E ~= E ] */
+            case SPEC_NOEQ:
+                // spravanie dat. typov pri '==','~=': int ~= int = bool, int ~= dec = bool, dec ~= dec = bool, string ~= string = bool (a zaroven miesto ktorehokolvek z dec, int, string moze byt nil), else error
+                *nont_token = *token[0];
+
+                if ((token[0]->type == TYPE_INTEGER || token[0]->type == TYPE_DECIMAL || token[0]->type == TYPE_NIL) && (token[2]->type == TYPE_INTEGER || token[2]->type == TYPE_DECIMAL || token[2]->type == TYPE_NIL))
+                    nont_token->type = TYPE_BOOL;
+                else if ((token[0]->type == TYPE_INTEGER || token[0]->type == TYPE_NIL) && (token[2]->type == TYPE_STRING || token[2]->type == TYPE_NIL))
+                    nont_token->type = TYPE_BOOL;
+                else
+                    error(6, token[0]->line);
+
+                nont_token->attribute = "E";
+
                 break;
 
-            case SPEC_NOEQ:
-                /* rule 11 */
-                break;
-            
+             /* rule 12: [ E -> E .. E ] */
             case SPEC_CONC:
-                /* rule 12 */
+                // spravanie dat. typov pri '..': string .. string = string, else error
+                *nont_token = *token[0];
+                if (token[0]->type == TYPE_STRING && token[2]->type == TYPE_STRING)
+                    nont_token->type = TYPE_STRING;
+                else
+                    error(6, token[0]->line);
+
+                nont_token->attribute = "E";
+
                 break;
 
             default:
                 error(2, token[0]->line);
                 break;
         }
-        printf("( %i.)  E -> E %s E\n",token[1]->spec, token[1]->attribute);
+        
+        printf("( %i.)  E -> E %s E\n",token[1]->spec, token[1]->attribute);    ///
         DLL_InsertLast(AST_list,token[1]);
-
     }
+    /* rule 13:  [ E -> # E ] */
     else if ( token[0]->spec ==  SPEC_EMPTY && token[1]->spec == SPEC_HASH && token[2]->spec == SPEC_NONT)
     {
-        /* rule 13 */
-        printf("( %i.)  E -> %s E\n",token[1]->spec, token[1]->attribute);
+        printf("( %i.)  E -> %s E\n",token[1]->spec, token[1]->attribute);      ///
         DLL_InsertLast(AST_list,token[1]);
+        *nont_token = *token[2];
+        if (token[2]->type == TYPE_STRING)
+            nont_token->type = TYPE_INTEGER;
+        else
+            error(6, token[1]->line);
     }
+    /* rule 14:  [ E -> i ] */
     else if (token[0]->spec == SPEC_EMPTY && token[1]->spec == SPEC_EMPTY && token[2]->spec == SPEC_IDOP)
     {
-        /* rule 14 */
-        printf("( %i.)  E -> '%s' \n",token[2]->spec, token[2]->attribute);
+        printf("( %i.)  E -> '%s' \n",token[2]->spec, token[2]->attribute);     ///
         DLL_InsertLast(AST_list,token[2]);
+
+        *nont_token = *token[2];
+        if ( token[2]->type == TYPE_IDENTIFIER )
+            {
+                if (sym_table != NULL)
+                    nont_token->type = get_var_datatype(sym_table, token[2]->attribute);
+                else
+                    nont_token->type = TYPE_INTEGER;    //// !!!!!!!! symtable instead - do not forget to delete this
+            }
+        if (strcmp(token[2]->attribute, "0") != 0)    // if it is 0, it gets it as attribute from source token
+            nont_token->attribute = "E";
     }
+    /* rule 15:  [ E -> ( E ) ] */
     else if (token[0]->spec == SPEC_OPEN && token[1]->spec == SPEC_NONT && token[2]->spec == SPEC_CLOS)
     {
-        /* rule 15 */
-        printf("( 15.)  E -> ( E )\n");
+        printf("( 15.)  E -> ( E )\n");     ///
+        *nont_token = *token[1];
     }
     else
         error(2, token[2]->line);
 
+
+    push_nont(stack, nont_token);
+    free(nont_token);
     for (int i = 0; i < 3; i++)
     {
         free(token[i]);
     }
 }
 
-
-void push_nont(pp_stack* stack)
-{ 
-    token_t* token = malloc(sizeof(token_t));
-    if (token == NULL)
-        error(99, 0);
-    token->spec = SPEC_NONT;
-    token->attribute = "E"; // for debug 
-    stack_push(stack, token);
-    free(token);
-
-}
 
 
 void print_stack(pp_stack* stack)   // for debug
@@ -333,8 +436,9 @@ void DLL_print(DLList *AST_list)    // for debug
  * @param list Ukazatel na inicializovanou DLL strukturu, naplnenu tokenmi jedneho vyrazu a ukoncenu s $ (vstupna paska s tokenmi)
  * @param AST_list Ukazatel na inicializovanu DLL strukturu, cez ktoru parser preda generatoru rozparsovany a skontrolovany vyraz (postfix).
  */
-void parse_expression (DLList *list, DLList *AST_list)
+int parse_expression (DLList *list, DLList *AST_list)
 {
+    int ret_code;
     pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
     token_t* token = malloc(sizeof(token_t));
     if (stack == NULL || token == NULL)
@@ -376,15 +480,16 @@ void parse_expression (DLList *list, DLList *AST_list)
 
         case '>':
             reduce(stack, AST_list);  // vyberie tokeny zo zasobniku az po SPEC_MARK ('<'), porovna s pravidlami a redukuje
-            push_nont(stack);
             break;
 
         case '#':
+            ret_code = (stack_top(stack))->token->type;
+            printf("***** TYPE: %d *****\n",ret_code);
             stack_dispose(stack);
             free(token);
             free(stack);
-            printf("Parsing of expression was successfull!!\n");
-            return;
+            //printf("Parsing of expression was successfull!!\n");
+            return ret_code;
             break;
 
         default:
@@ -427,8 +532,9 @@ void DLL_to_DLL(DLList *pp_list, DLList *list, token_t* token)
  * @param token Ukazatel na inicializovanu strukturu tokenu pre funkciu get_token(..)
  * @param string --||--
  */
-void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_list) 
+int DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_list) 
 {
+    int ret_code;
     DLL_Dispose(list);      // presitotu premaze pri znovu-uzivani
     DLL_Dispose(AST_list);      // presitotu premaze pri znovu-uzivani
     DLList *pp_list = (DLList *) malloc (sizeof(DLList));   //pp_list pre parsovanie vyrazu
@@ -438,11 +544,14 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST
     while(token->type != TYPE_EOF)
     {
         if (token->spec == SPEC_NIL)
+        {
             token->spec = SPEC_IDOP; // nil je v precedencnom parseri spracovavany ako operand
+            token->type = TYPE_NIL;  // v semantike je treba pristup k jeho typu NIL
+        }
         DLL_InsertLast(pp_list, token);
         
          //ak nasleduje keyword, tak vymaze posledny token a vlozi ho do listu pre hlavny parser
-        if (pp_list->last->token->type == TYPE_KEYWORD || (pp_list->last->token->type == TYPE_DATATYPE && pp_list->last->token->spec != SPEC_IDOP) || strcmp(pp_list->last->token->attribute,",") == 0)     
+        if (pp_list->last->token->type == TYPE_KEYWORD || pp_list->last->token->type == TYPE_DATATYPE || strcmp(pp_list->last->token->attribute,",") == 0)     
         {
             DLL_to_DLL(pp_list, list, token);
             break;
@@ -472,12 +581,13 @@ void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST
         token->attribute = "$";
         token->line = -1;
         DLL_InsertLast( pp_list, token);
-        parse_expression(pp_list, AST_list);      //docasny vypis pre znazornenie prace PSA parseru
+        ret_code = parse_expression(pp_list, AST_list);      //docasny vypis pre znazornenie prace PSA parseru
         DLL_print(AST_list);            // for debug
         printf("\n____________________________MAIN_PARSER_______________________________\n");
     }
     DLL_Dispose(pp_list);               // vymazanie pp_listu po tom ako su vyrazy spracovane
     free(pp_list);
+    return ret_code;
 }
 
 
@@ -506,6 +616,7 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
     DLLElement *element;
     DLL_Init(list);
     DLL_Init(AST_list);
+    int type_code;
 
     do
     {
@@ -516,13 +627,13 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
         {
             again:
             get_token(token,string);
-            DLL_parse(list,token,string,AST_list);   // volanie pre parsovanie pripadneho vyrazu
+            type_code = DLL_parse(list,token,string,AST_list);   // volanie pre parsovanie pripadneho vyrazu
             if (list->last != NULL)
             {
                 element = list->first;
                 while(element != NULL)      // v liste sa nachadza omylom ukradnuty token pre parser
                 {
-                    printf("\n---> # '%s',%d,%d\n",element->token->attribute,element->token->type,element->token->spec);    // cinnost parseru
+                    printf("\n---> '%s',%d,%d\n*TYPE %d*\n",element->token->attribute,element->token->type,element->token->spec,type_code);    // cinnost parseru
                     if (element->token->spec == SPEC_RETURN || element->token->spec == SPEC_IF || element->token->spec == SPEC_WHILE || strcmp(element->token->attribute,",") == 0) // moze obsahovat "keyword","datatype","identifier"
                         goto again;
                     element = element->next;//
@@ -543,10 +654,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-/*
+///*
 int main()
 {
     return parser();
 }
-*/
+//*/
 

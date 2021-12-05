@@ -13,10 +13,15 @@
 #include "dynamic_string.h"
 
 typedef enum {
-    TYPE_OPERATOR,
-    TYPE_STRING,
+    // datove typy (aj ako navratove hodnoty z PP pri kontrole typu)
+    TYPE_NIL,       // pre semantiku v PP
     TYPE_INTEGER,
-    TYPE_DECIMAL,
+    TYPE_DECIMAL,   
+    TYPE_STRING,    
+    TYPE_BOOL,      // pre semantiku v PP
+
+    // ostatne
+    TYPE_OPERATOR,
     TYPE_IDENTIFIER,
     TYPE_KEYWORD,
     TYPE_DATATYPE,
@@ -26,6 +31,7 @@ typedef enum {
 } TokenType;
 
 typedef enum {
+    // symboly pre precedencny parser
     SPEC_PLUS,  // '+' 
     SPEC_MINU,  // '-' 
     SPEC_MULT,  // '*' 
@@ -39,14 +45,14 @@ typedef enum {
     SPEC_NOEQ,  // '~='
     SPEC_CONC,  // '..' 
     SPEC_HASH,  // '#' 
-    SPEC_IDOP,  // pomecne i
+    SPEC_IDOP,  // 'i' ako operand
     SPEC_OPEN,  // '(' 
     SPEC_CLOS,  // ')' 
 
-    SPEC_DOLR,
-    SPEC_MARK,
-    SPEC_NONT,
-    SPEC_EMPTY,
+    SPEC_DOLR,  // koniec zasobniku/vyrazu
+    SPEC_MARK,  // znacenie zaciatku vyrazu '<' vramci zasobniku
+    SPEC_NONT,  // 'E' ako nonterminal
+    SPEC_EMPTY, // prazdny token->spec
 
     // KEYWORDS
     SPEC_DO,

@@ -15,7 +15,6 @@
 #include "structures.h"
 #include "symtab.h"
 
-extern symtab_t* sym_table;
 
-void DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_list);
-//void parse_expression (DLList *list, DLList *AST_list);
+
+int DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_list);
