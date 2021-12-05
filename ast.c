@@ -128,13 +128,12 @@ void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute){
     if(parent->no_children == parent->child_arr_size) {
         child_arr_expand(parent);
     }
-    parent->no_children++;
     child_arr_create(&parent->child_arr[parent->no_children]);
     parent->child_arr[parent->no_children].no_children = 0;
     parent->child_arr[parent->no_children].id = id;
-
     parent->child_arr[parent->no_children].attribute = attribute;
 
+    parent->no_children++;
 }
 
 /*
