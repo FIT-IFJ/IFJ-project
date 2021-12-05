@@ -3,13 +3,14 @@
 # Vytvoril: Tym 102 - Klimecka Alena, prosinec 2021                            
 # Upravy: Tym 102 
 
+OBJECTS = ast.o dynamic_string.o our_error.o parser.o precedence_parser.o scanner.o structures.o symtab.o
+
 CC = gcc
 CFLAGS = -std=c99
-OBJECTS = ast.o dynamic_string.o our_error.o parser.o precedence_parser.o scanner.o structures.o symtab.o
 
 .PHONY: program clean
 
-%.o : %.c
+%.o: %.c 
 	$(CC) $(CFLAGS) -c $<
 
 all: program
