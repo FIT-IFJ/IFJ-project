@@ -219,6 +219,9 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string, a
     int result = 0;
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
     AST_add_child(parent_node, func_def_id, string_a(token_lookahead->attribute));
+    //ast_node_t* new_parent = &parent_node->child_arr[parent_node->no_children - 1];
+    //AST_add_child(new_parent, variable_id, string_a(token->attribute));
+
     moveAhead(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "(")) {
@@ -238,7 +241,7 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string, a
             moveAhead(token, token_lookahead, string);
             return result;
         }
-    result = result && func_body(token, token_lookahead, string);
+    result = result && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     if (strcmp(token->attribute, "end")){
         return FAILURE;
     }
@@ -281,7 +284,8 @@ int params(token_t* token, token_t* token_lookahead, dynamic_string* string){
     return type(token, token_lookahead, string) && params(token, token_lookahead, string);
 }
 
-int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, body_id, nil_a());
     if (token_lookahead->type == TYPE_EOF){
         return FAILURE;
     }
@@ -302,28 +306,28 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
         moveAhead(token, token_lookahead, string);
     }
     if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "if"))){
-        return if_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return if_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
-        return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return while_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "return"))){
-        return return_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return return_element(token, token_lookahead, string) && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     else if (token->type == TYPE_IDENTIFIER && token_lookahead->spec == SPEC_OPEN){
-        return func_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return func_element(token, token_lookahead, string) && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     else if (token->spec == SPEC_LOCAL){
-        return decl_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return decl_element(token, token_lookahead, string) && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     else if (!strcmp(token_lookahead->attribute, ",") || token_lookahead->type == TYPE_ASSIGNMENT)
     {
-        return assignment(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return assignment(token, token_lookahead, string) && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     return FAILURE;
 }
 
-int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // the current token is "if"
     int result = 1;
     DLList* list = (DLList *) malloc(sizeof(DLList));
@@ -354,7 +358,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     }
     else
     {
-        result = func_body(token, token_lookahead, string);
+        result = func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_ELSE)
@@ -368,7 +372,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     }
     else
     {
-        result = func_body(token, token_lookahead, string) && result;
+        result = func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && result;
     }
     //moveAhead(token, token_lookahead, string); // move_ahead musi byt tady nebo v epsilon vetvi predchoziho ifu
     if (token->spec != SPEC_END)
@@ -379,7 +383,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     return result;
 }
 
-int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // the current token is "while"
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
@@ -401,7 +405,7 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
         return FAILURE;
     }
     //moveAhead(token, token_lookahead, string);
-    int result = func_body(token, token_lookahead, string);
+    int result = func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     //moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_END)
     {

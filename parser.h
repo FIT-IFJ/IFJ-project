@@ -27,10 +27,10 @@ int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string)
 int params(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int constants(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
 int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string);
-int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string);
+int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
+int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
 int return_element(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int func_element(token_t* token, token_t* token_lookahead, dynamic_string* string);
 int item_list(token_t* token, token_t* token_lookahead, dynamic_string* string);
