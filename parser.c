@@ -22,7 +22,7 @@
 bool podezrely_token = false;
 
 int main(){
-    token_t* new_token = malloc(sizeof(token_t)); // todo check if this is the correct way to allocate
+    token_t* new_token = malloc(sizeof(token_t));
     token_t* new_token_lookahead = malloc(sizeof(token_t));
     dynamic_string* string = string_init();
     //AST->child_arr[0];
@@ -499,7 +499,6 @@ int return_list(token_t* token, token_t* token_lookahead, dynamic_string* string
 }
 
 int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    // COMMENTED FOR NOW SINCE PRECEDENCE ANALYSIS CURRENTLY BREAKS AT ITEM LISTS
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
     DLList* AST_list = (DLList *) malloc(sizeof(DLList));
@@ -518,10 +517,16 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
-    if (token->spec == SPEC_WHILE){
+    if (token->spec == SPEC_WHILE || token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->type == TYPE_IDENTIFIER){
         podezrely_token = true;
     }
-    get_token(token_lookahead, string);
+    if (token->spec == SPEC_END){
+        *token_lookahead = *token;
+    }
+    else{
+        get_token(token_lookahead, string);
+    }
+
     //moveAhead(token, token_lookahead, string);
     return SUCCESS;
     if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
@@ -544,7 +549,7 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
 }
 
 int items(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    if (token->type == TYPE_KEYWORD) // todo changed from lookahead to token
+    if (token->type == TYPE_KEYWORD || token->spec == SPEC_END) // todo changed from lookahead to token
     {
         //epsilon rule
         return SUCCESS;
