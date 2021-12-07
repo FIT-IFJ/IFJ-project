@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include <string.h>     // size_t
 #include <stdbool.h>    // bool
-
+#include "our_error.h"
 
 // Typy:
 typedef const char * htab_key_t;        // typ klíče
@@ -178,8 +178,9 @@ LL* LL_create(){
     //vytvori novy head
     LL* head = (LL*)malloc(sizeof (struct linked_list_head));
     if(!head){
-        fprintf( stderr, "malloc - chyba alokace paměti ve funkci LL_create\n");
-        return NULL;
+        error(99, 69);
+        //fprintf( stderr, "malloc - chyba alokace paměti ve funkci LL_create\n");
+        //return NULL;
     }
     //priradi novemu head hodnoty a vrati ho
     head->next = NULL;
@@ -204,15 +205,17 @@ int LL_insert(LL* ll, datatype_t datatype, char* name){
     //alokuje novy item
     LL_item* new_item = (LL_item*)malloc((sizeof (struct linked_list_item)));
     if(!new_item){
-        fprintf( stderr, "malloc - chyba alokace paměti new_item ve funkci LL_insert\n");
-        return 0;
+        error(99, 69);
+        //fprintf( stderr, "malloc - chyba alokace paměti new_item ve funkci LL_insert\n");
+        //return 0;
     }
     if(name) {
         char *new_name = (char *) calloc(sizeof(strlen(name) + 1), sizeof(char));
         if (!new_name) {
-            free(new_item);
-            fprintf(stderr, "calloc - chyba alokace paměti new_name ve funkci LL_insert\n");
-            return 0;
+            error(99, 69);
+            //free(new_item);
+            //fprintf(stderr, "calloc - chyba alokace paměti new_name ve funkci LL_insert\n");
+            //return 0;
         }
         //inicializuje novy item
         strcpy(new_name, name);
@@ -346,14 +349,16 @@ size_t htab_hash_function(const char *str) {
 var_htab_t *var_htab_init(size_t n){
     var_htab_t *hash_table = malloc(sizeof(var_htab_t)); //alokuje strukturu tabulky
     if (hash_table == NULL) {
-        fprintf(stderr, "htab.c/htab_init/malloc - chyba alokace paměti pro hash_table\n");
-        return NULL;
+        error(99, 69);
+        //fprintf(stderr, "htab.c/htab_init/malloc - chyba alokace paměti pro hash_table\n");
+        //return NULL;
     }
     var_list_head *item_arr = calloc(n, sizeof(var_list_head *)); //alokuje a nuluje pole n ukazatelu na linked listy
     if (item_arr == NULL) {
-        fprintf(stderr, "htab.c/htab_init/malloc - chyba alokace paměti pro item_arr\n");
-        free(hash_table);
-        return NULL;
+        error(99, 69);
+        //fprintf(stderr, "htab.c/htab_init/calloc - chyba alokace paměti pro item_arr\n");
+        //free(hash_table);
+        //return NULL;
     }
     //inicializace
     hash_table->size     = 0;
@@ -424,7 +429,10 @@ bool var_htab_erase(var_htab_t * t, htab_key_t key){
 int uid_value = 0;
 char *generate_uid(char* varname){
     char *uid = malloc(sizeof(char)* (strlen(varname)+11+1)); //11 = počet cifer hodnoty int_max; +1 na \0
-    uid = sprintf("%s%d", varname, uid_value);
+    if(!uid){
+        error(99, 69);
+    }
+    sprintf(uid,"%s%d", varname, uid_value);
     uid_value++;
     return uid;
 }
@@ -455,16 +463,18 @@ int var_htab_lookup_add(var_htab_t *t, htab_key_t key, datatype_t datatype) {
     }
     size_t len = strlen(key)+1; //+1 protoze misto pro '/0'
     char *p_key = malloc(len*sizeof(char));
-    if (p_key == NULL){
-        fprintf(stderr, "htab.c/htab_lookup_add/malloc - chyba alokace paměti pro p_key\n");
-        return 0; //NULL
+    if (!p_key){
+        error(99, 69);
+        //fprintf(stderr, "htab.c/htab_lookup_add/malloc - chyba alokace paměti pro p_key\n");
+        //return 0; //NULL
     }
 
     var_item_t *p_new_node = malloc(sizeof(var_item_t));
-    if (p_new_node == NULL){
-        fprintf(stderr, "htab.c/htab_lookup_add/malloc - chyba alokace paměti pro p_new_node\n");
-        free(p_key);
-        return 0; //NULL
+    if (!p_new_node){
+        error(99, 69);
+        //fprintf(stderr, "htab.c/htab_lookup_add/malloc - chyba alokace paměti pro p_new_node\n");
+        //free(p_key);
+        //return 0; //NULL
     }
     strcpy(p_key, key);
 
@@ -513,13 +523,15 @@ var_data_t *var_htab_find(var_htab_t *t, htab_key_t key){
  */
 func_htab_t *func_htab_init(size_t n){
     func_htab_t *hash_table = malloc(sizeof(func_htab_t)); //alokuje strukturu tabulky
-    if (hash_table == NULL) {
-        return NULL;
+    if (!hash_table) {
+        error(99, 69);
+        //return NULL;
     }
     func_list_head *item_arr = calloc(n, sizeof(func_list_head *)); //alokuje a nuluje pole n ukazatelu na linked listy
-    if (item_arr == NULL) {
-        free(hash_table);
-        return NULL;
+    if (!item_arr) {
+        error(99, 69);
+        //free(hash_table);
+        //return NULL;
     }
     //inicializace
     hash_table->size     = 0;
@@ -610,14 +622,16 @@ int func_htab_lookup_add(func_htab_t *t, htab_key_t key) {
     }
     size_t len = strlen(key)+1; //+1 protoze misto pro '/0'
     char *p_key = malloc(len*sizeof(char));
-    if (p_key == NULL){
-        return 0; //NULL
+    if (!p_key){
+        error(99, 69);
+        //return 0; //NULL
     }
 
     func_item_t *p_new_node = malloc(sizeof(func_item_t));
-    if (p_new_node == NULL){
-        free(p_key);
-        return 0; //NULL
+    if (!p_new_node){
+        error(99, 69);
+        //free(p_key);
+        //return 0; //NULL
     }
 
     strcpy(p_key, key);
@@ -678,24 +692,27 @@ func_data_t *func_htab_find(func_htab_t *t, htab_key_t key){
 symtab_t *symtab_create(){
     symtab_t *symtab = (symtab_t*)malloc(sizeof(symtab_t));
     if (!symtab) {
-        fprintf( stderr, "symtab.c/symtab_create/malloc - chyba alokace paměti pro symtab\n");
-        return NULL; //chyba alokace pameti
+        error(99, 69);
+        //fprintf( stderr, "symtab.c/symtab_create/malloc - chyba alokace paměti pro symtab\n");
+        //return NULL; //chyba alokace pameti
     }
     symtab->var_symtab = malloc(sizeof(stack_t));
     if(!symtab->var_symtab){
-        fprintf( stderr, "symtab.c/symtab_create/malloc - chyba alokace paměti pro symtab->var_symtab\n");
-        free(symtab);
-        return NULL;
+        error(99, 69);
+        //fprintf( stderr, "symtab.c/symtab_create/malloc - chyba alokace paměti pro symtab->var_symtab\n");
+        //free(symtab);
+        //return NULL;
     }
     symtab->var_symtab->top = NULL;
     symtab->var_symtab->bottom = NULL;
 
     symtab->func_ht = func_htab_init(HASH_TABLE_SIZE);
     if(!symtab->func_ht){
-        fprintf( stderr, "symtab.c/symtab_create/func_ht");
-        free(symtab->var_symtab);
-        free(symtab);
-        return NULL;
+        error(99, 69);
+        //fprintf( stderr, "symtab.c/symtab_create/func_ht");
+        //free(symtab->var_symtab);
+        //free(symtab);
+        //return NULL;
     }
     return symtab;
 }
@@ -733,14 +750,16 @@ int start_block(symtab_t *symtab){ //push
     //alokace itemu zasobniku
     stack_item_t *new_block = (stack_item_t*)malloc(sizeof(stack_item_t));
     if (!new_block) {
-        fprintf( stderr, "symtab.c/start_block/malloc - chyba alokace paměti pro new_block\n");
-        return 0; //chyba alokace pameti
+        error(99, 69);
+        //fprintf( stderr, "symtab.c/start_block/malloc - chyba alokace paměti pro new_block\n");
+        //return 0; //chyba alokace pameti
     }
     new_block->var_ht = var_htab_init(HASH_TABLE_SIZE);
     if (!new_block->var_ht) {
-        free(new_block);
-        fprintf( stderr, "symtab.c/start_block\n");
-        return 0; //chyba alokace pameti
+        error(99, 69);
+        //free(new_block);
+        //fprintf( stderr, "symtab.c/start_block\n");
+        //return 0; //chyba alokace pameti
     }
     //pushnuti itemu
     if (!symtab->var_symtab->bottom) { //pokud vkladam do prazdneho zasobniku
@@ -800,7 +819,8 @@ int define_var(symtab_t *symtab, const char *var_name,  datatype_t var_datatype)
     }
     int result = var_htab_lookup_add(symtab->var_symtab->top->var_ht, var_name, var_datatype);
     if(!result){
-        fprintf(stderr, "symtab.c/define_var\n");
+        error(99, 69);
+        //fprintf(stderr, "symtab.c/define_var\n");
     }
     return result;
 }
