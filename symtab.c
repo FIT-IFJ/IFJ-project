@@ -398,6 +398,7 @@ bool var_htab_erase(var_htab_t * t, htab_key_t key){
     while (p_node != NULL){
         if(!strcmp(p_node->data.key, key)) { //pokud je key shodny s aktualni bunkou htable
             htab_key_t key_to_free = p_node->data.key;
+            char *uid_to_free = p_node->data.uid;
             var_item_t * node_to_free = p_node;
             if(p_last == NULL){
                 t->item_arr[index] = p_node->next;
@@ -405,6 +406,7 @@ bool var_htab_erase(var_htab_t * t, htab_key_t key){
                 p_last->next = p_node->next;
             }
             //puts(key_to_free); //vypis pro ladeni
+            free(uid_to_free);
             free((void*)key_to_free);
             free(node_to_free);
             t->size -= 1;
