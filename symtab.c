@@ -83,13 +83,14 @@ char* LL_get_item_name(LL* ll, int pos);
 
 // Struktura dat v tabulce promněnných:
 typedef struct var_data {
-    htab_key_t      key;              // ukazatel na klic (nazev promenne)
-    datatype_t      type;             // datovy typ
+    htab_key_t key;              // ukazatel na klic (nazev promenne)
+    char* uid;
+    datatype_t type;             // datovy typ
 } var_data_t;
 
 // Struktura dat v tabulce funkcí:
 typedef struct func_data {
-    htab_key_t       key;           // ukazatel na klic (nazev funkce)
+    htab_key_t key;           // ukazatel na klic (nazev funkce)
     datatype_t type;               // datovy typ
     LL *params;
     LL *returns;
@@ -416,6 +417,16 @@ bool var_htab_erase(var_htab_t * t, htab_key_t key){
 }
 
 
+
+
+int uid_value = 0;
+char *generate_uid(char* varname){
+    char *uid = malloc(sizeof(char)* (strlen(varname)+11+1)); //11 = počet cifer hodnoty int_max; +1 na \0
+    uid = sprintf("%s%d", varname, uid_value);
+    uid_value++;
+    return uid;
+}
+
 /**
  * @brief       V tabulce  t  vyhledá záznam odpovídající řetězci  key  a
  *                  - pokud jej nalezne, vrátí -1
@@ -457,6 +468,7 @@ int var_htab_lookup_add(var_htab_t *t, htab_key_t key, datatype_t datatype) {
 
     p_new_node->data.key   = p_key;
     p_new_node->data.type = datatype;
+    p_new_node->data.uid = generate_uid(p_key);
     p_new_node->next       = NULL;
 
     if(p_last == NULL){
@@ -828,6 +840,32 @@ int get_var_datatype(symtab_t *symtab, char *var_name) {
     return -1;
 }
 
+/**
+ * @brief Zkontroluje, jestli je proměnná již v tabulce
+ * symbolů deklarovaná.
+ * @return Pokud promenna neni v tabulce, nebo pokud tabulka neexistuje, vrátí NULL. Pokud je, vrátí string uid promenne
+ */
+char* get_var_uid(symtab_t *symtab, char *var_name){
+    if(!symtab){
+        return NULL;
+    }
+    if(!symtab->var_symtab){
+        return NULL;
+    }
+    if(!symtab->var_symtab->top) {
+        return NULL;
+    }
+    stack_item_t *current_layer = symtab->var_symtab->top;
+    do {
+        var_data_t *data = var_htab_find(current_layer->var_ht, var_name);
+        if (!data) {
+            current_layer = current_layer->below;
+        } else {
+            return data->uid;
+        }
+    } while (current_layer);
+    return NULL;
+}
 /**
  * @brief Funkce pro deklaraci funkce. V tabulce vyhledá funkci odpovídající nazvu func_name a:
  *                  - pokud ji nalezne, vrátí -1 (funkce uz deklarovana je, nutno zkontrolovat jestli sedi parametry)
