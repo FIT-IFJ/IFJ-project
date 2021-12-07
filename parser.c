@@ -20,14 +20,16 @@
 #define SUCCESS 1
 #define FAILURE 0
 bool podezrely_token = false;
+bool from_func_def = false;
 
 int main(){
-    token_t* new_token = malloc(sizeof(token_t)); // todo check if this is the correct way to allocate
+    token_t* new_token = malloc(sizeof(token_t));
     token_t* new_token_lookahead = malloc(sizeof(token_t));
     dynamic_string* string = string_init();
-    //AST->child_arr[0];
+    ast_node_t* AST;
+    AST_insert_root(&AST);
     printf("-- PARSING STARTED --\n");
-    int result = program(new_token, new_token_lookahead, string);
+    int result = program(new_token, new_token_lookahead, string, AST);
     int syntax_control_result = result ? 0 : 1;
     printf("[STATUS CODE OF THE PARSING: %d]\n", syntax_control_result);
     if (!syntax_control_result) {
@@ -42,10 +44,9 @@ void moveAhead(token_t* token, token_t* token_lookahead, dynamic_string* string)
 void report_error(char* msg, int line){
     printf("Syntax error: %s on line %d\n", msg, line);
 }
-int program(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int program(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* AST){
     int result;
-    ast_node_t* AST;
-    AST_insert_root(&AST);
+
     result = prologue(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     return result && program_body(token, token_lookahead, string, AST);
@@ -75,7 +76,7 @@ int program_body(token_t* token, token_t* token_lookahead, dynamic_string* strin
     if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "global")))
     {
         // <program_body> -> <func_decl><program_body>
-        return func_decl(token, token_lookahead, string) && program_body(token, token_lookahead, string, parent_node);
+        return func_decl(token, token_lookahead, string, parent_node) && program_body(token, token_lookahead, string, parent_node);
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "function")))
     {
@@ -89,7 +90,7 @@ int program_body(token_t* token, token_t* token_lookahead, dynamic_string* strin
     }
     return FAILURE;
 }
-int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
+int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node)
 {
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
     int result = 1;
@@ -112,53 +113,47 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* string)
     moveAhead(token, token_lookahead, string);
     if (token->type == TYPE_DATATYPE)
     {
-        result = type_list(token, token_lookahead, string);
+        // PC
+        result = type_list(token, token_lookahead, string, parent_node);
         moveAhead(token, token_lookahead, string);
     }
     if (strcmp(token->attribute, ")"))
     {
         return FAILURE;
     }
-    //moveAhead(token, token_lookahead, string);
-//    if (strcmp(token->attribute, ":"))
-//    {
-//        return FAILURE;
-//    }
-//    //moveAhead(token, token_lookahead, string);
-//    if (token_lookahead->type == TYPE_DATATYPE)
-//    {
-//        result = result && type_list(token, token_lookahead, string);
-//        // do nothing for now
-//    }
+
     if (!strcmp(token_lookahead->attribute, ":"))
     {
         // jestli je v lookaheadu dvojtecka, tak uzivatel specifikuje return values -> musim zkontrolovat type:list
         moveAhead(token, token_lookahead, string);
         moveAhead(token, token_lookahead, string);
-        result = result && type_list(token, token_lookahead, string);
+        // PC
+        result = result && type_list(token, token_lookahead, string, parent_node);
     }
-    //result = 1; // FOR DEBUGGING PURPOSES
     return result;
 
 }
 
 int func_call(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // the current TOKEN is the ID of function
+    AST_add_child(parent_node, func_call_id, string_a(token->attribute));
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "("))
     {
         return FAILURE;
     }
     //if (token_lookahead->type == TYPE_STRING) // THIS IS GONNA NEED TO CHECK FOR ALL THE CONSTANTS, now only accepts strings
-    return constant_list(token, token_lookahead, string);
+    // PC
+    return constant_list(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 
 }
 
-int type_list(token_t* token, token_t* token_lookahead, dynamic_string* string) {
-    return type(token, token_lookahead, string) && types(token, token_lookahead, string);
+int type_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node) {
+    // PC
+    return type(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && types(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 }
 
-int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+int types(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node) {
     if (!strcmp(token_lookahead->attribute, ")")){
         return SUCCESS;
     }
@@ -174,11 +169,12 @@ int types(token_t* token, token_t* token_lookahead, dynamic_string* string) {
         return FAILURE;
     }
     moveAhead(token, token_lookahead, string);
-    return type(token, token_lookahead, string) && types(token, token_lookahead, string);
+    // PC
+    return type(token, token_lookahead, string, parent_node) && types(token, token_lookahead, string, parent_node);
 
 }
 
-int type(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+int type(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node) {
     // if ")" here should deal with the epsilon rule = zero types given
     if (token->type == TYPE_DATATYPE){
         return SUCCESS;
@@ -186,7 +182,7 @@ int type(token_t* token, token_t* token_lookahead, dynamic_string* string) {
     return FAILURE;
 }
 
-int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node) {
     if (!strcmp(token_lookahead->attribute, ")"))
     {
         // epsilon pravidlo pro nula argumentu
@@ -196,10 +192,11 @@ int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* stri
 
     moveAhead(token, token_lookahead, string);
     // the current token is a constant - will need to work with that
-    return constants(token, token_lookahead, string);
+    // PC
+    return constants(token, token_lookahead, string, parent_node);
 }
 
-int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) {
+int constants(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node) {
     if (!strcmp(token_lookahead->attribute, ")")){
         moveAhead(token, token_lookahead, string);
         return SUCCESS;
@@ -211,7 +208,8 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* string) 
     }
     moveAhead(token, token_lookahead, string);
     // now I am working with the CONSTANT
-    return constants(token, token_lookahead, string);
+    // PC
+    return constants(token, token_lookahead, string, parent_node);
 
 }
 
@@ -219,33 +217,40 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* string, a
     int result = 0;
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
     AST_add_child(parent_node, func_def_id, string_a(token_lookahead->attribute));
+    //ast_node_t* new_parent = &parent_node->child_arr[parent_node->no_children - 1];
+    //AST_add_child(new_parent, variable_id, string_a(token->attribute));
+
     moveAhead(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, "(")) {
         return FAILURE;
     }
-    result = param_list(token, token_lookahead, string);
+    // PC
+    result = param_list(token, token_lookahead, string, parent_node);
     moveAhead(token, token_lookahead, string);
     if (!strcmp(token_lookahead->attribute, ":"))
     {
         // jestli je v lookaheadu dvojtecka, tak uzivatel specifikuje return values -> musim zkontrolovat type:list
         moveAhead(token, token_lookahead, string);
         moveAhead(token, token_lookahead, string);
-        result = result && type_list(token, token_lookahead, string);
+        // PC
+        result = result && type_list(token, token_lookahead, string, parent_node);
     }
-    if (!strcmp(token_lookahead->attribute, "end")){
+    if (!strcmp(token_lookahead->attribute, "end"))
+    {
             // epsilon rule for function body
             moveAhead(token, token_lookahead, string);
             return result;
-        }
-    result = result && func_body(token, token_lookahead, string);
+    }
+    from_func_def = true;
+    result = result && func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     if (strcmp(token->attribute, "end")){
         return FAILURE;
     }
     return result;
 }
 
-int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     if (!strcmp(token_lookahead->attribute, ")"))
     {
         // epsilon pravidlo pro nula parametru
@@ -261,11 +266,13 @@ int param_list(token_t* token, token_t* token_lookahead, dynamic_string* string)
         return FAILURE;
     }
     moveAhead(token, token_lookahead, string);
-    result = type(token, token_lookahead, string);
-    return  result && params(token, token_lookahead, string);
+    // PC
+    result = type(token, token_lookahead, string, parent_node);
+    // PC
+    return  result && params(token, token_lookahead, string, parent_node);
 
 }
-int params(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int params(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     if (!strcmp(token_lookahead->attribute, ")")){
         return SUCCESS;
     }
@@ -278,10 +285,15 @@ int params(token_t* token, token_t* token_lookahead, dynamic_string* string){
     // now I am working with the var_ID
     moveAhead(token, token_lookahead, string);
     moveAhead(token, token_lookahead, string);
-    return type(token, token_lookahead, string) && params(token, token_lookahead, string);
+    // PC
+    return type(token, token_lookahead, string, parent_node) && params(token, token_lookahead, string, parent_node);
 }
 
-int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    if (from_func_def){
+        AST_add_child(parent_node, body_id, nil_a());
+        from_func_def = false;
+    }
     if (token_lookahead->type == TYPE_EOF){
         return FAILURE;
     }
@@ -290,7 +302,7 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
         return SUCCESS;
     }
     if (token_lookahead->spec == SPEC_ELSE || token_lookahead->spec == SPEC_END){
-        // epsilon rule for ending the functions's body
+        // epsilon rule for ending the function's body
         return SUCCESS;
     }
     // probably gonna have to add more keywords(?) checks to end while statements and others
@@ -302,28 +314,28 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string){
         moveAhead(token, token_lookahead, string);
     }
     if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "if"))){
-        return if_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return if_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, parent_node);
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "while"))){
-        return while_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return while_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, parent_node);
     }
     else if ((token->type == TYPE_KEYWORD) && (!strcmp(token->attribute, "return"))){
-        return return_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return return_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, parent_node);
     }
     else if (token->type == TYPE_IDENTIFIER && token_lookahead->spec == SPEC_OPEN){
-        return func_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return func_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, parent_node);
     }
     else if (token->spec == SPEC_LOCAL){
-        return decl_element(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return decl_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, parent_node);
     }
     else if (!strcmp(token_lookahead->attribute, ",") || token_lookahead->type == TYPE_ASSIGNMENT)
     {
-        return assignment(token, token_lookahead, string) && func_body(token, token_lookahead, string);
+        return assignment(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && func_body(token, token_lookahead, string, parent_node);
     }
     return FAILURE;
 }
 
-int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // the current token is "if"
     int result = 1;
     DLList* list = (DLList *) malloc(sizeof(DLList));
@@ -354,7 +366,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     }
     else
     {
-        result = func_body(token, token_lookahead, string);
+        result = func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_ELSE)
@@ -368,7 +380,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     }
     else
     {
-        result = func_body(token, token_lookahead, string) && result;
+        result = func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && result;
     }
     //moveAhead(token, token_lookahead, string); // move_ahead musi byt tady nebo v epsilon vetvi predchoziho ifu
     if (token->spec != SPEC_END)
@@ -379,7 +391,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string)
     return result;
 }
 
-int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int while_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // the current token is "while"
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
@@ -401,7 +413,7 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
         return FAILURE;
     }
     //moveAhead(token, token_lookahead, string);
-    int result = func_body(token, token_lookahead, string);
+    int result = func_body(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     //moveAhead(token, token_lookahead, string);
     if (token->spec != SPEC_END)
     {
@@ -410,7 +422,8 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
     return result;
 }
 
-int func_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int func_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, func_call_id, string_a(token->attribute));
     // the current token is FUNC_ID
     int result = 1;
     moveAhead(token, token_lookahead, string);
@@ -421,7 +434,8 @@ int func_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
     }
     else
     {
-        result = arg_list(token, token_lookahead, string);
+        // PC == possible change
+        result = arg_list(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     moveAhead(token, token_lookahead, string);
     return  result;
@@ -429,18 +443,35 @@ int func_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
     // todo check for right closing bracket?
 }
 
-int arg_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    return arg(token, token_lookahead, string) && args(token, token_lookahead, string);
+int arg_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    // PC
+    AST_add_child(parent_node, params_id, nil_a());
+    return arg(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && args(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 }
 
-int arg(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int arg(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     moveAhead(token, token_lookahead, string);
-    if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
+
+    if (token->type == TYPE_STRING)
     {
+        AST_add_child(parent_node, constant_id, string_a(token->attribute));
+        return SUCCESS;
+    }
+    if (token->type == TYPE_INTEGER)
+    {
+        char** endptr;
+        AST_add_child(parent_node, constant_id, integer_a(strtol(token->attribute, endptr, 10)));
+        return SUCCESS;
+    }
+    if (token->type == TYPE_DECIMAL)
+    {
+        char** endptr;
+        AST_add_child(parent_node, constant_id, number_a(strtod(token->attribute, endptr)));
         return SUCCESS;
     }
     if (token->type == TYPE_IDENTIFIER)
     {
+        AST_add_child(parent_node, variable_id, string_a(token->attribute));
         moveAhead(token, token_lookahead, string);
         if (strcmp(token->attribute, ":"))
         {
@@ -455,7 +486,7 @@ int arg(token_t* token, token_t* token_lookahead, dynamic_string* string){
     return FAILURE;
 }
 
-int args(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int args(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     int result;
     if (!strcmp(token_lookahead->attribute, ")")){
         return SUCCESS;
@@ -466,12 +497,13 @@ int args(token_t* token, token_t* token_lookahead, dynamic_string* string){
         return FAILURE;
     }
     // now I am working with the CONSTANT or ID
-    result = arg(token, token_lookahead, string);
-    return args(token, token_lookahead, string) && result;
+    // PC
+    result = arg(token, token_lookahead, string, parent_node);
+    return args(token, token_lookahead, string, parent_node) && result;
 
 }
 
-int return_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int return_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     if (token_lookahead->type == TYPE_KEYWORD)
     {
         // epsilon rule for just purely return with no return data
@@ -479,7 +511,8 @@ int return_element(token_t* token, token_t* token_lookahead, dynamic_string* str
     }
     if (token_lookahead->type == TYPE_IDENTIFIER || token_lookahead->type == TYPE_STRING || token_lookahead->type == TYPE_INTEGER || token_lookahead->type == TYPE_DECIMAL)
     {
-        return return_list(token, token_lookahead, string);
+        // PC
+        return return_list(token, token_lookahead, string, parent_node);
     }
     //if (token_lookahead->type == TYPE_KEYWORD)
     //{
@@ -493,13 +526,13 @@ int return_element(token_t* token, token_t* token_lookahead, dynamic_string* str
     return FAILURE;
 }
 
-int return_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    return item(token, token_lookahead, string) && items(token, token_lookahead, string);
+int return_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    // PC
+    return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && items(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 
 }
 
-int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    // COMMENTED FOR NOW SINCE PRECEDENCE ANALYSIS CURRENTLY BREAKS AT ITEM LISTS
+int item(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     DLList* list = (DLList *) malloc(sizeof(DLList));
     DLL_Init(list);
     DLList* AST_list = (DLList *) malloc(sizeof(DLList));
@@ -518,10 +551,16 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
-    if (token->spec == SPEC_WHILE){
+    if (token->spec == SPEC_WHILE || token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->type == TYPE_IDENTIFIER){
         podezrely_token = true;
     }
-    get_token(token_lookahead, string);
+    if (token->spec == SPEC_END){
+        *token_lookahead = *token;
+    }
+    else{
+        get_token(token_lookahead, string);
+    }
+
     //moveAhead(token, token_lookahead, string);
     return SUCCESS;
     if (token->type == TYPE_STRING || token->type == TYPE_INTEGER || token->type == TYPE_DECIMAL)
@@ -534,7 +573,7 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
         // jestli lookahead je leva zavorka, tak zavolej func_element
         if (token_lookahead->spec == SPEC_OPEN)
         {
-            return  func_element(token, token_lookahead, string);
+            return  func_element(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
         }
         // currently working with ID
         return SUCCESS;
@@ -543,8 +582,8 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string){
 
 }
 
-int items(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    if (token->type == TYPE_KEYWORD) // todo changed from lookahead to token
+int items(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    if (token->type == TYPE_KEYWORD || token->spec == SPEC_END) // todo changed from lookahead to token
     {
         //epsilon rule
         return SUCCESS;
@@ -554,16 +593,18 @@ int items(token_t* token, token_t* token_lookahead, dynamic_string* string){
     {
         return FAILURE;
     }
-    return item(token, token_lookahead, string) && items(token, token_lookahead, string);
+    // PC
+    return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && items(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 }
 
-int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     moveAhead(token, token_lookahead, string);
     if (token->type != TYPE_IDENTIFIER)
     {
         return FAILURE;
     }
     // now I am working with the ID of the variable
+    AST_add_child(parent_node, var_declare_id, string_a(token->attribute));
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ":"))
     {
@@ -572,50 +613,66 @@ int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
     moveAhead(token, token_lookahead, string);
     if (token_lookahead->type == TYPE_ASSIGNMENT)
     {
-        return type(token, token_lookahead, string) && decl_assign(token, token_lookahead, string);
+        //PC
+        return type(token, token_lookahead, string, parent_node) && decl_assign(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     else
     {
-        return type(token, token_lookahead, string);
+        // PC
+        return type(token, token_lookahead, string, parent_node);
     }
 }
 
-int decl_assign(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int decl_assign(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, assign_id, nil_a());
     moveAhead(token, token_lookahead, string);
     if (token->type != TYPE_ASSIGNMENT)
     {
         return FAILURE;
     }
-    return item(token, token_lookahead, string);
+    // PC
+    return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 }
 
-int R_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    return item_list(token, token_lookahead, string);
+int R_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    // PC
+    return item_list(token, token_lookahead, string, parent_node);
 }
 
-int item_list(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    return item(token, token_lookahead, string) && items(token, token_lookahead, string);
+int item_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    // PC
+    return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && items(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
 }
 
-int assignment(token_t* token, token_t* token_lookahead, dynamic_string* string){
-    int result = L_assignment(token, token_lookahead, string);
+int assignment(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, assign_id, nil_a());
+    // PC
+    int result = L_assignment(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     moveAhead(token, token_lookahead, string);
     if (token->type != TYPE_ASSIGNMENT){
         return FAILURE;
     }
-    return result && R_assignment(token, token_lookahead, string);
+    // PC
+    return result && R_assignment(token, token_lookahead, string, parent_node);
 }
 
-int L_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int L_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // now I am working with the ID
+    if (token->type == TYPE_IDENTIFIER){
+        AST_add_child(parent_node, variable_id, string_a(token->attribute));
+    }
+    else{
+        return FAILURE;
+    }
     if (!strcmp(token_lookahead->attribute, ","))
     {
-        return ids(token, token_lookahead, string);
+        // PC
+        return ids(token, token_lookahead, string, parent_node);
     }
     return SUCCESS;
 }
 
-int ids(token_t* token, token_t* token_lookahead, dynamic_string* string){
+int ids(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     if (strcmp(token_lookahead->attribute, ","))
     {
         return SUCCESS;
@@ -626,5 +683,12 @@ int ids(token_t* token, token_t* token_lookahead, dynamic_string* string){
     }
     moveAhead(token, token_lookahead, string);
     // now I am working with the ID
-    return ids(token, token_lookahead, string);
+    if (token->type == TYPE_IDENTIFIER){
+        AST_add_child(parent_node, variable_id, string_a(token->attribute));
+    }
+    else{
+        return FAILURE;
+    }
+    // PC
+    return ids(token, token_lookahead, string, parent_node);
 }

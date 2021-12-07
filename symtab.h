@@ -45,6 +45,13 @@ int define_var(symtab_t *symtab, const char *var_name,  datatype_t var_datatype)
 int get_var_datatype(symtab_t *symtab, char *var_name);
 
 /**
+ * @brief Zkontroluje, jestli je proměnná již v tabulce
+ * symbolů deklarovaná.
+ * @return Pokud promenna neni v tabulce, nebo pokud tabulka neexistuje, vrátí NULL. Pokud je, vrátí string uid promenne
+ */
+char* get_var_uid(symtab_t *symtab, char *var_name);
+
+/**
  * @brief Funkce pro deklaraci funkce. V tabulce vyhledá funkci odpovídající nazvu func_name a:
  *                  - pokud ji nalezne, vrátí -1 (funkce uz deklarovana je, nutno zkontrolovat jestli sedi parametry)
  *                  - pokud nenalezne, automaticky ji přidá a vrátí 1 (nutno jeste ulozit parametry)
