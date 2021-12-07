@@ -118,4 +118,11 @@ attribute_t integer_a(int integerr);
  */
 void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute);
 
+/**
+ * @brief Pripoji DLList jako nove dite k parentovi, podobne jako AST_add_child
+ * @param parent ukazatel na rodice, kteremu mame pridat dite-DLL
+ * @param dll - DLList
+ */
+void AST_connect_DLL(ast_node_t *parent, DLList *dll);
+
 #endif

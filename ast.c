@@ -136,6 +136,133 @@ void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute){
     parent->no_children++;
 }
 
+node_id_t get_id(token_t* token){
+    switch (token->type) {
+        case TYPE_IDENTIFIER:
+            return variable_id;
+        case TYPE_OPERATOR:
+            return operation_id;
+        case TYPE_INTEGER:
+        case TYPE_STRING:
+        case TYPE_DECIMAL:
+        case TYPE_NIL:
+            return constant_id;
+        default:
+            fprintf(stderr, "konvertor nerozeznal id\n");
+            return operation_id; //random
+    }
+}
+
+attribute_t get_attribut(token_t* token){
+    char **endptr;
+    switch (token->type) {
+        case TYPE_IDENTIFIER:
+        case TYPE_OPERATOR:
+        case TYPE_STRING:
+            return string_a(token->attribute);
+        case TYPE_INTEGER:
+            return integer_a(strtol(token->attribute, endptr, 10));
+        case TYPE_DECIMAL:
+            return number_a(strtod(token->attribute, endptr));
+        case TYPE_NIL:
+            return nil_a();
+        default:
+            fprintf(stderr, "konvertor nerozeznal atribut\n");
+            return string_a(token->attribute); //random
+    }
+}
+
+void AST_add_child_rec_expr(DLList * dll, ast_node_t *parent){
+    //add child - prida dite podle nasledujiciho tokenu
+    DLL_DeleteLast(dll); //smaze posledni, tim padem posune posledni prvek o 1
+    //////////////////////////// GET_LAST
+    token_t *token = malloc(sizeof(token_t));
+    if(!token) {
+        error(99, 69);
+    }
+    DLL_GetLast(dll, token);
+    char *new_attrib = malloc(sizeof(char)*(strlen(token->attribute)+1));
+    if(!new_attrib) {
+        error(99, 69);
+    }
+    strcpy(new_attrib, token->attribute);
+    token->attribute = new_attrib;
+    //////////////////////////////////
+    AST_add_child(parent, get_id(token), get_attribut(token));
+    //podiva se co je dite zac
+    if (!(parent->child_arr[0].id == constant_id || parent->child_arr[0].id == variable_id)) { //pokud je operator
+        //prida prvni dite - pravy
+        AST_add_child_rec_expr(dll, &parent->child_arr[0]);
+        if(!strcmp(parent->child_arr[0].attribute.name, "#")){ //pokud je to unarni operator (neprida uz dalsi dite)
+            return;
+        }
+
+    }
+    DLL_DeleteLast(dll);
+    //////////////////////////// GET_LAST
+    token = malloc(sizeof(token_t));
+    if(!token) {
+        error(99, 69);
+    }
+    DLL_GetLast(dll, token);
+    char *new_attrib2 = malloc(sizeof(char)*(strlen(token->attribute)+1));
+    if(!new_attrib2) {
+        error(99, 69);
+    }
+    strcpy(new_attrib2, token->attribute);
+    token->attribute = new_attrib2;
+    //////////////////////////////////
+    AST_add_child(parent, get_id(token), get_attribut(token));
+
+    if (!(parent->child_arr[1].id == constant_id || parent->child_arr[1].id == variable_id)) {
+        //prida prvni dite - pravy
+        AST_add_child_rec_expr(dll, &parent->child_arr[1]);
+    }
+}
+
+
+ast_node_t *AST_dll_to_tree(DLList *dll){
+    ast_node_t *ast;
+    ast = malloc(sizeof(struct ASTNode));
+    if(!ast) {
+        error(99, 0);
+    }
+    //////////////////////////// GET_LAST
+    token_t *token = malloc(sizeof(token_t));
+    if(!token) {
+        error(99, 69);
+    }
+    DLL_GetLast(dll, token);
+    char *new_attrib = malloc(sizeof(char)*(strlen(token->attribute)+1));
+    if(!new_attrib) {
+        error(99, 69);
+    }
+    strcpy(new_attrib, token->attribute);
+    token->attribute = new_attrib;
+    //////////////////////////////////
+    ast->id = get_id(token);
+    ast->attribute = get_attribut(token);
+    child_arr_create(ast);
+    ast->no_children = 0;
+
+    if(ast->id == constant_id || ast->id == variable_id) {
+        return ast;
+    } else {
+        AST_add_child_rec_expr(dll, ast);
+    }
+    return ast;
+}
+
+void AST_connect_DLL(ast_node_t *parent, DLList *dll) {
+    if (parent->no_children == parent->child_arr_size) {
+        child_arr_expand(parent);
+    }
+    child_arr_create(&parent->child_arr[parent->no_children]);
+    parent->child_arr[parent->no_children] = *(AST_dll_to_tree(dll));
+
+    parent->no_children++;
+}
+
 /*
 //usage example
 
