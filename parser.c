@@ -302,7 +302,7 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* string, 
         return SUCCESS;
     }
     if (token_lookahead->spec == SPEC_ELSE || token_lookahead->spec == SPEC_END){
-        // epsilon rule for ending the functions's body
+        // epsilon rule for ending the function's body
         return SUCCESS;
     }
     // probably gonna have to add more keywords(?) checks to end while statements and others
@@ -604,6 +604,7 @@ int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
         return FAILURE;
     }
     // now I am working with the ID of the variable
+    AST_add_child(parent_node, var_declare_id, string_a(token->attribute));
     moveAhead(token, token_lookahead, string);
     if (strcmp(token->attribute, ":"))
     {
@@ -623,6 +624,7 @@ int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
 }
 
 int decl_assign(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, assign_id, nil_a());
     moveAhead(token, token_lookahead, string);
     if (token->type != TYPE_ASSIGNMENT)
     {
@@ -643,8 +645,9 @@ int item_list(token_t* token, token_t* token_lookahead, dynamic_string* string, 
 }
 
 int assignment(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, assign_id, nil_a());
     // PC
-    int result = L_assignment(token, token_lookahead, string, parent_node);
+    int result = L_assignment(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     moveAhead(token, token_lookahead, string);
     if (token->type != TYPE_ASSIGNMENT){
         return FAILURE;
@@ -655,6 +658,12 @@ int assignment(token_t* token, token_t* token_lookahead, dynamic_string* string,
 
 int L_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
     // now I am working with the ID
+    if (token->type == TYPE_IDENTIFIER){
+        AST_add_child(parent_node, variable_id, string_a(token->attribute));
+    }
+    else{
+        return FAILURE;
+    }
     if (!strcmp(token_lookahead->attribute, ","))
     {
         // PC
@@ -674,6 +683,12 @@ int ids(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_no
     }
     moveAhead(token, token_lookahead, string);
     // now I am working with the ID
+    if (token->type == TYPE_IDENTIFIER){
+        AST_add_child(parent_node, variable_id, string_a(token->attribute));
+    }
+    else{
+        return FAILURE;
+    }
     // PC
     return ids(token, token_lookahead, string, parent_node);
 }
