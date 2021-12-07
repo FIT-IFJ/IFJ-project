@@ -29,6 +29,7 @@ typedef struct DLLElement {
 typedef struct {
 	DLLElement* first;
 	DLLElement* last;
+	DLLElement* active;
 } DLList;
 
 
