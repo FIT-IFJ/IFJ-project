@@ -6,6 +6,8 @@
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 
+#ifndef PRECEDENCE_PARSER_HEADER
+#define PRECEDENCE_PARSER_HEADER
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,3 +20,5 @@
 
 
 int DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_list);
+
+#endif
