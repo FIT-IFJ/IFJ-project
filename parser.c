@@ -31,6 +31,7 @@ int main(){
     dynamic_string* dyn_string = string_init();
     ast_node_t* AST;
     symtable = symtab_create();
+    start_block(symtable);
     AST_insert_root(&AST);
     printf("-- PARSING STARTED --\n");
     int result = program(new_token, new_token_lookahead, dyn_string, AST);
@@ -47,6 +48,14 @@ void moveAhead(token_t* token, token_t* token_lookahead, dynamic_string* dyn_str
 }
 void report_error(char* msg, int line){
     printf("Syntax error: %s on line %d\n", msg, line);
+}
+
+void import_builtins(symtab_t* symtable){
+    char* nazev_fce[] = {"write", "read"};
+    for (int i = 0; i < 2; ++i) {
+
+    }
+
 }
 int program(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* AST){
     int result;
@@ -585,15 +594,19 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, a
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
-    if (token->spec == SPEC_WHILE || token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->type == TYPE_IDENTIFIER || token->spec == SPEC_LOCAL){
-        podezrely_token = true;
-    }
     if (token->spec == SPEC_END){
         *token_lookahead = *token;
     }
     else{
         get_token(token_lookahead,dyn_string);
     }
+    if (token->type == TYPE_IDENTIFIER && token_lookahead->spec == SPEC_OPEN){
+        podezrely_token = true;
+    }
+    else if (token->spec == SPEC_WHILE || token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->type == TYPE_IDENTIFIER || token->spec == SPEC_LOCAL){
+        podezrely_token = true;
+    }
+
 
     //moveAhead(token, token_lookahead,dyn_string);
     return SUCCESS;
@@ -617,7 +630,7 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, a
 }
 
 int items(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node){
-    if (token->type == TYPE_KEYWORD || token->spec == SPEC_END) // todo changed from lookahead to token
+    if (token->type == TYPE_KEYWORD || token->spec == SPEC_END || token_lookahead->spec == SPEC_OPEN) // todo changed from lookahead to token
     {
         //epsilon rule
         return SUCCESS;
