@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "dynamic_string.h"
+#include "our_error.h"
 
 typedef enum {
     TYPE_OPERATOR,
@@ -56,7 +57,7 @@ typedef enum {
     SPEC_THEN, 
     SPEC_WHILE,
 
-    // DATATYPE
+    // DATATYPES
     SPEC_NUMBER,
     SPEC_INTEGER,
     SPEC_NIL,
