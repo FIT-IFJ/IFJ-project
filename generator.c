@@ -560,7 +560,7 @@ void g_func_call(ast_node_t *call_node){
         }
     } else {
         //pushnu na datovy zasobnik argumenty
-        for (int i = 0; i < call_node->no_children - 1; i++) { //-1 bo indexace je od nuly
+        for (int i = 0; i < call_node->no_children; i++) { //-1 bo indexace je od nuly
             if (call_node->child_arr[i].id == variable_id) {
                 printf("PUSHS LF@%s\n", call_node->attribute.name);
             } else { //konstantu
