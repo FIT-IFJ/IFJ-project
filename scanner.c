@@ -38,7 +38,8 @@ static char *datatype_table[]= {
 void lex_error(token_t *new_token, dynamic_string *string) 
 {
     string_free(string);
-    error(1, new_token->line);
+    free(new_token);
+    error(1, line);
 }
 
 void create_operator_token(token_t *new_token, dynamic_string *string)
