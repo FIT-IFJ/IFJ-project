@@ -581,7 +581,7 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_n
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
-    if (token->spec == SPEC_WHILE || token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->type == TYPE_IDENTIFIER){
+    if (token->spec == SPEC_WHILE || token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->type == TYPE_IDENTIFIER || token->spec == SPEC_LOCAL){
         podezrely_token = true;
     }
     if (token->spec == SPEC_END){
