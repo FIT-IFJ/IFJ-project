@@ -32,6 +32,7 @@ int main(){
     ast_node_t* AST;
     symtable = symtab_create();
     start_block(symtable);
+    import_builtins();
     AST_insert_root(&AST);
     //printf("-- PARSING STARTED --\n");
     int result = program(new_token, new_token_lookahead, dyn_string, AST);
@@ -50,10 +51,11 @@ void report_error(char* msg, int line){
     printf("Syntax error: %s on line %d\n", msg, line);
 }
 
-void import_builtins(symtab_t* symtable){
-    char* nazev_fce[] = {"write", "read"};
-    for (int i = 0; i < 2; ++i) {
-
+void import_builtins(){
+    char* nazev_fce[] = {"reads", "readi", "readn", "write", "tointeger", "substr", "ord", "chr"};
+    for (int i = 0; i < 8; ++i) {
+        declare_function(symtable, nazev_fce[i]);
+        define_function(symtable, nazev_fce[i]);
     }
 
 }
@@ -272,9 +274,9 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* dyn_strin
     }
     if (!strcmp(token_lookahead->attribute, "end"))
     {
-            // epsilon rule for function body
-            moveAhead(token, token_lookahead,dyn_string);
-            return result;
+        // epsilon rule for function body
+        moveAhead(token, token_lookahead,dyn_string);
+        return result;
     }
     from_func_def = true;
     result = result && func_body(token, token_lookahead, dyn_string, &parent_node->child_arr[parent_node->no_children - 1]);
