@@ -436,6 +436,7 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* stri
     {
         error(2, token->line);
     }
+    AST_connect_DLL(&parent_node->child_arr[parent_node->no_children - 1], AST_list);
     printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
     *token = *vraceny_token->token;
     DLL_Dispose(list);
@@ -531,6 +532,7 @@ int args(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_n
 }
 
 int return_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
+    AST_add_child(parent_node, return_id, nil_a());
     if (token_lookahead->type == TYPE_KEYWORD)
     {
         // epsilon rule for just purely return with no return data
@@ -539,7 +541,7 @@ int return_element(token_t* token, token_t* token_lookahead, dynamic_string* str
     if (token_lookahead->type == TYPE_IDENTIFIER || token_lookahead->type == TYPE_STRING || token_lookahead->type == TYPE_INTEGER || token_lookahead->type == TYPE_DECIMAL)
     {
         // PC
-        return return_list(token, token_lookahead, string, parent_node);
+        return return_list(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
     }
     //if (token_lookahead->type == TYPE_KEYWORD)
     //{
@@ -574,6 +576,7 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_n
     //    // v liste se nachazi omylem ukradnuty token
     //    vraceny_token = vraceny_token->next;
     //}
+    AST_connect_DLL(parent_node, AST_list);
     printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
     *token = *vraceny_token->token;
     DLL_Dispose(list);
@@ -621,7 +624,7 @@ int items(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_
         error(2, token->line);
     }
     // PC
-    return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]) && items(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
+    return item(token, token_lookahead, string, parent_node) && items(token, token_lookahead, string, parent_node);
 }
 
 int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
