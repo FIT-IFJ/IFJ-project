@@ -1,6 +1,9 @@
-//
-// Created by davidnovak on 12/8/21.
-//
+/* ******************* generator.h ****************************************** */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Hlavickovy soubor ke generatoru v generator.c                       */
+/*  Vytvoril: Tym 102 - David Novak, prosinec 2021                            */
+/* ************************************************************************** */
 
 #ifndef GENERATOR_H
 #define GENERATOR_H
