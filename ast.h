@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 #include "datatype_t.h"
+#include "structures.h"
+
 
 /**
  * Id/typ nody ast. Podle toho generato pozna, kterou konstrukci dany node reprezentuje, jaky ma ocekavat atribut a
