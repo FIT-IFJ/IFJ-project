@@ -37,7 +37,6 @@ typedef struct attribute{
     double number;
     int integer;
     bool nil;
-    datatype_t type;
 } attribute_t;
 
 /**
