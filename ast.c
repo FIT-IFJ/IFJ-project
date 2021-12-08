@@ -73,7 +73,23 @@ void AST_insert_root(ast_node_t **ast){
 void AST_destroy(){
     //todo
 }
-
+/**
+ * @brief transformuje string do podoby pro ifjcode21
+ * @param string vstupni string
+ * @return transformovany string
+ */
+char* string_transform(char* string){
+    char *result_string = calloc(sizeof(char),(strlen(string)*4+1));
+    char tempstring[5];
+    if(!result_string){
+        error(99, 4);
+    }
+    for(int i = 1; i < strlen(string)-1; i++) {
+        sprintf(tempstring, "\\%03d", string[i]);
+        strcat(result_string, tempstring);
+    }
+    return result_string;
+}
 /**
  * @brief vytvoří atribut se stringem.. Pro použití do
  * parametru funkcí, co vyžadují attribute_t, jako například AST_add_child()
