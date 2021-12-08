@@ -42,7 +42,7 @@ int child_arr_destroy(ast_node_t *node){
     free(node->child_arr);
     node->child_arr_size = 0;
     return 1;
-};
+}
 
 /**
  * @brief Inicializuje AST a vlozi do neho nodu program_id (root)
