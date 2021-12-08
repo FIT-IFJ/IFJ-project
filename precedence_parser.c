@@ -24,8 +24,7 @@ typedef struct pp_stack{
 } pp_stack;
 
 
-symtab_t* symtable;        // extern symtab_t* sym_table;  ??
-
+extern symtab_t* symtable;        // extern symtab_t* sym_table;  ??
 
 void stack_init(pp_stack* stack)
 {
@@ -333,8 +332,9 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pra
         *nont_token = *token[2];
         if ( token[2]->type == TYPE_IDENTIFIER )
             {
-                if (symtable != NULL)
+                if (symtable != NULL){
                     nont_token->type = get_var_datatype(symtable, token[2]->attribute);
+                }
                 else
                     nont_token->type = TYPE_INTEGER;    //// !!!!!!!! symtable instead - do not forget to delete this
             }
