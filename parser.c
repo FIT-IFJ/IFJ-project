@@ -16,6 +16,7 @@
 #include "symtab.h"
 #include "parser.h"
 #include "precedence_parser.h"
+#include "generator.h"
 
 
 #define SUCCESS 1
@@ -40,6 +41,7 @@ int main(){
     if (!syntax_control_result) {
         printf("Syntax control successful.\n");
     }
+    g_program(AST);
     return 0;
 }
 void moveAhead(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string){
