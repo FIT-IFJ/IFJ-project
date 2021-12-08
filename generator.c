@@ -15,6 +15,7 @@ int integrated_count = 0;
 
 
 void g_integrated_functions(){
+    printf("JUMP $jump_over_integrated\n");
     g_reads();
     g_readi();
     g_readn();
@@ -23,6 +24,7 @@ void g_integrated_functions(){
     g_substr();
     g_ord();
     g_chr();
+    printf("LABEL $jump_over_integrated\n");
 }
 
 void g_reads(){
@@ -43,7 +45,7 @@ void g_readi(){
     printf("LABEL $readi\n");
 
     printf("DEFVAR LF@$integrated-%d\n", curr_count);
-    printf("READ LF@$integrated-%d integer\n", curr_count);
+    printf("READ LF@$integrated-%d int\n", curr_count);
     printf("PUSHS LF@$integrated-%d\n", curr_count);
 
     printf("RETURN\n");
@@ -55,7 +57,7 @@ void g_readn(){
     printf("LABEL $readn\n");
 
     printf("DEFVAR LF@$integrated-%d\n", curr_count);
-    printf("READ LF@$integrated-%d number\n", curr_count);
+    printf("READ LF@$integrated-%d float\n", curr_count);
     printf("PUSHS LF@$integrated-%d\n", curr_count);
 
     printf("RETURN\n");
@@ -280,7 +282,7 @@ void g_chr(){
     //vraceni nilu
     printf("JUMP $chr-hop-%d\n" ,curr_count);
     printf("LABEL $chr-retnil-%d\n" ,curr_count);
-    printf("PUSH nil@nil\n");
+    printf("PUSHS nil@nil\n");
     printf("LABEL $chr-hop-%d\n" ,curr_count);
 
     //vraceni chyby 8
@@ -314,6 +316,10 @@ void g_program(ast_node_t *program_node){
     printf(".IFJcode21\n");
     g_error_labels();
     g_integrated_functions();
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
     for (int i = 0; i < program_node->no_children; i++) {
         if (program_node->child_arr[i].id == func_def_id) {
             g_func_def(&program_node->child_arr[i]);
@@ -377,9 +383,9 @@ int g_expression(ast_node_t *expr_node){ //todo typove kontroly
         if (expr_node->attribute.saved_type == string) {
             printf("MOVE LF@$expr-res-%d string@%s\n", curr_expr_no, expr_node->attribute.name);
         } else if (expr_node->attribute.saved_type == integer) {
-            printf("MOVE LF@$expr-res-%d integer@%d\n", curr_expr_no, expr_node->attribute.integer);
+            printf("MOVE LF@$expr-res-%d int@%d\n", curr_expr_no, expr_node->attribute.integer);
         } else if (expr_node->attribute.saved_type == number) {
-            printf("MOVE LF@$expr-res-%d number@%a\n", curr_expr_no, expr_node->attribute.number);
+            printf("MOVE LF@$expr-res-%d float@%a\n", curr_expr_no, expr_node->attribute.number);
         } else if (expr_node->attribute.saved_type == nil) {
             printf("MOVE LF@$expr-res-%d nil@nil\n", curr_expr_no);
         }
@@ -532,33 +538,34 @@ int g_expression(ast_node_t *expr_node){ //todo typove kontroly
 void g_func_call(ast_node_t *call_node){
     //pokud je funkce write, musime to resit takto, protoze nemame jak zjistit pocet predanych argumentu
     if (!strcmp(call_node->attribute.name, "write")) { //pokud fce je write
-        for (int i = 0; i < call_node->no_children - 2; i++) { //-1 bo indexace je od nuly
+        for (int i = 0; i < call_node->no_children; i++) {
+            //pokud je dite variable
             if (call_node->child_arr[i].id == variable_id) {
-                printf("WRITE LF@%s\n", call_node->attribute.name);
-            } else { //konstantu
-                if (call_node->attribute.saved_type == string) {
-                    printf("WRITE string@%s\n", call_node->attribute.name);
-                } else if (call_node->attribute.saved_type == integer) {
-                    printf("WRITE integer@%d\n", call_node->attribute.integer);
-                } else if (call_node->attribute.saved_type == number) {
-                    printf("WRITE number@%a\n", call_node->attribute.number);
-                } else if (call_node->attribute.saved_type == nil) {
+                printf("WRITE LF@%s\n", call_node->child_arr[i].attribute.name);
+            } else { //pokud je dite konstanta
+                if (call_node->child_arr[i].attribute.saved_type == string) {
+                    printf("WRITE string@%s\n", call_node->child_arr[i].attribute.name);
+                } else if (call_node->child_arr[i].attribute.saved_type == integer) {
+                    printf("WRITE int@%d\n", call_node->child_arr[i].attribute.integer);
+                } else if (call_node->child_arr[i].attribute.saved_type == number) {
+                    printf("WRITE float@%a\n", call_node->child_arr[i].attribute.number);
+                } else if (call_node->child_arr[i].attribute.saved_type == nil) {
                     printf("WRITE nil@nil\n");
                 }
             }
         }
     } else {
         //pushnu na datovy zasobnik argumenty
-        for (int i = 0; i < call_node->no_children - 2; i++) { //-1 bo indexace je od nuly
+        for (int i = 0; i < call_node->no_children - 1; i++) { //-1 bo indexace je od nuly
             if (call_node->child_arr[i].id == variable_id) {
                 printf("PUSHS LF@%s\n", call_node->attribute.name);
             } else { //konstantu
                 if (call_node->attribute.saved_type == string) {
                     printf("PUSHS string@%s\n", call_node->attribute.name);
                 } else if (call_node->attribute.saved_type == integer) {
-                    printf("PUSHS integer@%d\n", call_node->attribute.integer);
+                    printf("PUSHS int@%d\n", call_node->attribute.integer);
                 } else if (call_node->attribute.saved_type == number) {
-                    printf("PUSHS number@%a\n", call_node->attribute.number);
+                    printf("PUSHS float@%a\n", call_node->attribute.number);
                 } else if (call_node->attribute.saved_type == nil) {
                     printf("PUSHS nil@nil\n");
                 }
@@ -588,23 +595,26 @@ void g_assign(ast_node_t *assign_node) {
         no_assigns = assign_node->no_children / 2;
         for (int i = 0; i < no_assigns; i++) {
             int expr_no = g_expression(&assign_node->child_arr[no_assigns + i]);
-            printf("MOVE LF@%s, LF@$expr-res-%d \n", assign_node->child_arr[i].attribute.name, expr_no);
+            printf("MOVE LF@%s LF@$expr-res-%d \n", assign_node->child_arr[i].attribute.name, expr_no);
         }
     }
 }
 
 void g_func_def(ast_node_t *func_def_node){
+    printf("JUMP $jump_over%s\n", func_def_node->attribute.name);
 
     printf("LABEL $%s\n", func_def_node->attribute.name);
 
     //definuje promenne z argumentu
-    for(int i = func_def_node->no_children-2; i >= 0; i--) { //-2 bo posledni je body_id a indexace je od nuly
+    for(int i = 0; i < func_def_node->no_children-2; i++) { //-2 bo posledni je body_id a indexace je od nuly
         printf("DEFVAR LF@%s\n", func_def_node->child_arr[i].attribute.name);
         printf("POPS LF@%s\n", func_def_node->child_arr[i].attribute.name);
     }
 
     g_body(&func_def_node->child_arr[func_def_node->no_children-1]);
     printf("RETURN\n");
+
+    printf("LABEL $jump_over%s\n", func_def_node->attribute.name);
 }
 
 
