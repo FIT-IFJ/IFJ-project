@@ -186,7 +186,7 @@ int type(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, a
 }
 
 int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node) {
-    AST_add_child(parent_node, params_id, nil_a());
+    //AST_add_child(parent_node, params_id, nil_a());
     if (!strcmp(token_lookahead->attribute, ")"))
     {
         // epsilon pravidlo pro nula argumentu
@@ -197,18 +197,18 @@ int constant_list(token_t* token, token_t* token_lookahead, dynamic_string* dyn_
     moveAhead(token, token_lookahead,dyn_string);
     // the current token is a constant - will need to work with that
     if (token->type == TYPE_STRING){
-        AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], constant_id, string_a(token->attribute));
+        AST_add_child(parent_node, constant_id, string_a(token->attribute));
     }
     else if (token->type == TYPE_INTEGER){
         char** endptr = NULL;
-        AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], constant_id, integer_a(strtol(token->attribute, endptr, 10)));
+        AST_add_child(parent_node, constant_id, integer_a(strtol(token->attribute, endptr, 10)));
     }
     else if (token->type == TYPE_DECIMAL){
         char** endptr = NULL;
-        AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], constant_id, number_a(strtod(token->attribute, endptr)));
+        AST_add_child(parent_node, constant_id, number_a(strtod(token->attribute, endptr)));
     }
     // PC
-    return constants(token, token_lookahead, dyn_string, &parent_node->child_arr[parent_node->no_children - 1]);
+    return constants(token, token_lookahead, dyn_string, parent_node);
 }
 
 int constants(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node) {
@@ -277,7 +277,7 @@ int func_def(token_t* token, token_t* token_lookahead, dynamic_string* dyn_strin
 }
 
 int param_list(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node){
-    AST_add_child(parent_node, params_id, nil_a());
+    //AST_add_child(parent_node, params_id, nil_a());
     if (!strcmp(token_lookahead->attribute, ")"))
     {
         // epsilon pravidlo pro nula parametru
@@ -287,7 +287,7 @@ int param_list(token_t* token, token_t* token_lookahead, dynamic_string* dyn_str
     moveAhead(token, token_lookahead,dyn_string);
     // the current token is an ID
     /// add child
-    AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], variable_id, string_a(token->attribute));
+    AST_add_child(parent_node, variable_id, string_a(token->attribute));
     moveAhead(token, token_lookahead,dyn_string);
     if (strcmp(token->attribute, ":"))
     {
@@ -485,8 +485,9 @@ int func_element(token_t* token, token_t* token_lookahead, dynamic_string* dyn_s
 
 int arg_list(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node){
     // PC
-    AST_add_child(parent_node, params_id, nil_a());
-    return arg(token, token_lookahead, dyn_string, &parent_node->child_arr[parent_node->no_children - 1]) && args(token, token_lookahead, dyn_string, &parent_node->child_arr[parent_node->no_children - 1]);
+    //AST_add_child(parent_node, params_id, nil_a());
+    //return arg(token, token_lookahead, dyn_string, &parent_node->child_arr[parent_node->no_children - 1]) && args(token, token_lookahead, dyn_string, &parent_node->child_arr[parent_node->no_children - 1]);
+    return arg(token, token_lookahead, dyn_string, parent_node) && args(token, token_lookahead, dyn_string, parent_node);
 }
 
 int arg(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node){
