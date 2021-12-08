@@ -1,3 +1,10 @@
+/* ******************* ast.h ************************************************ */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Hlavickovy soubor k ast.c                                           */
+/*  Vytvoril: Tym 102 - David Novak, prosinec 2021                            */
+/* ************************************************************************** */
+
 #ifndef AST_HEADER
 #define AST_HEADER
 
