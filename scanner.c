@@ -37,10 +37,8 @@ static char *datatype_table[]= {
 
 void lex_error(token_t *new_token, dynamic_string *string) 
 {
-    fprintf(stderr, "LINE: %i\nWrong lexem structure!\n", line);
     string_free(string);
-    free(new_token);
-    exit(1);
+    error(1, new_token->line);
 }
 
 void create_operator_token(token_t *new_token, dynamic_string *string)
