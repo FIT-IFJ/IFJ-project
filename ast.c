@@ -1,3 +1,11 @@
+/* ******************* ast.c ************************************************ */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Soubor s implementaci abstraktniho syntaktickeho stromu, ktery      */
+/*        slouzi jako rozhrani mezi parserem a generatorem                    */
+/*  Vytvoril: Tym 102 - David Novak, prosinec 2021                            */
+/* ************************************************************************** */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
