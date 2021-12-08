@@ -1,5 +1,5 @@
-#ifndef ast_h
-#define ast_h
+#ifndef AST_HEADER
+#define AST_HEADER
 
 #include <stdbool.h>
 #include "datatype_t.h"
