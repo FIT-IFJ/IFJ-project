@@ -192,14 +192,18 @@ int type(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, a
     // if ")" here should deal with the epsilon rule = zero types given
     if (token->type == TYPE_DATATYPE){
         if (temp_var_name != 0) {
+            int redef;
             if (token->spec == SPEC_INTEGER) {
-                define_var(symtable, temp_var_name, integer);
+                redef = define_var(symtable, temp_var_name, integer);
             } else if (token->spec == SPEC_NUMBER) {
-                define_var(symtable, temp_var_name, number);
+                redef = define_var(symtable, temp_var_name, number);
             } else if (token->spec == SPEC_STRING) {
-                define_var(symtable, temp_var_name, string);
+                redef = define_var(symtable, temp_var_name, string);
             } else if (token->spec == SPEC_NIL) {
-                define_var(symtable, temp_var_name, nil);
+                redef = define_var(symtable, temp_var_name, nil);
+            }
+            if (redef == -1){
+                error(3, token->line);
             }
         }
         return SUCCESS;
