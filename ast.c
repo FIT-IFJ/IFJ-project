@@ -81,7 +81,7 @@ attribute_t string_a(char* stringg){
 }
 
 /**
- * @brief vytvoří atribut s nilem. Pro použití do parametru funkcí, co vyžadují attribute_t, jako například 
+ * @brief vytvoří atribut s nilem. Pro použití do parametru funkcí, co vyžadují attribute_t, jako například
  * AST_add_child()
  * @return atribut s nilem
  */
@@ -119,7 +119,7 @@ attribute_t integer_a(int integerr){
 }
 
 /**
- * 
+ *
  * @param parent ukazatel na rodice, kteremu mame vytvorit dite
  * @param id id ditete, ktere vkladame
  * @param attribute atribut nody, vutvoreny funkci integer_a, number_a, string_a nebo nil_a
@@ -154,16 +154,16 @@ node_id_t get_id(token_t* token){
 }
 
 attribute_t get_attribut(token_t* token){
-    char **endptr;
+    char *endptr;
     switch (token->type) {
         case TYPE_IDENTIFIER:
         case TYPE_OPERATOR:
         case TYPE_STRING:
             return string_a(token->attribute);
         case TYPE_INTEGER:
-            return integer_a(strtol(token->attribute, endptr, 10));
+            return integer_a(strtol(token->attribute, &endptr, 10));
         case TYPE_DECIMAL:
-            return number_a(strtod(token->attribute, endptr));
+            return number_a(strtod(token->attribute, &endptr));
         case TYPE_NIL:
             return nil_a();
         default:
@@ -272,7 +272,7 @@ int main() {
     ast_node_t *stashed_node = ast;
 
     AST_add_child(stashed_node, func_def_id, string_a("foo"));
-    
+
     return 1;
 }
  */
