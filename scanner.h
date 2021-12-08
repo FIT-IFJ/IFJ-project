@@ -6,6 +6,10 @@
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 
+
+#ifndef SCANNER_HEADER
+#define SCANNER_HEADER
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -99,3 +103,5 @@ void create_num_token(token_t *new_token, dynamic_string *string);
 void detect_block_comment();
 void detect_comment();
 void get_token(token_t *new_token, dynamic_string *string);
+
+#endif
