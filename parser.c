@@ -390,6 +390,7 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string,
     }
     if (token_lookahead->spec == SPEC_ELSE)
     {
+        AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], body_id, nil_a());
         // epsilon rule
     }
     else
@@ -405,7 +406,8 @@ int if_element(token_t* token, token_t* token_lookahead, dynamic_string* string,
     // now at token else
     if (token_lookahead->spec == SPEC_END){
         moveAhead(token, token_lookahead, string);
-        // epsilon rule 
+        // epsilon rule
+        AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], body_id, nil_a());
     }
     else
     {
@@ -464,6 +466,7 @@ int func_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
     if (token_lookahead->spec == SPEC_CLOS)
     {
         // epsilon rule for no given arguments
+        AST_add_child(&parent_node->child_arr[parent_node->no_children - 1], body_id, nil_a());
     }
     else
     {
