@@ -6,6 +6,9 @@
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 
+#ifndef PARSER_HEADER
+#define PARSER_HEADER
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,3 +50,4 @@ int ids(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_no
 int return_list(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node);
 
 
+#endif
