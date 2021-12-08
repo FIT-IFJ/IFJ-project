@@ -16,7 +16,6 @@
 #include "symtab.h"
 #include "parser.h"
 #include "precedence_parser.h"
-#include "generator.h"
 
 
 #define SUCCESS 1
@@ -42,7 +41,6 @@ int main(){
     if (!syntax_control_result) {
         //printf("Syntax control successful.\n");
     }
-    g_program(AST);
     return 0;
 }
 void moveAhead(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string){
@@ -109,6 +107,7 @@ int program_body(token_t* token, token_t* token_lookahead, dynamic_string* dyn_s
 int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node)
 {
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
+    declare_function(symtable, token_lookahead->attribute);
     int result = 1;
     get_token(token,dyn_string);
     get_token(token_lookahead,dyn_string);
@@ -152,6 +151,9 @@ int func_decl(token_t* token, token_t* token_lookahead, dynamic_string* dyn_stri
 
 int func_call(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node){
     // the current TOKEN is the ID of function
+    if (!is_defined(symtable, token->attribute)){
+        error(3, token->line);
+    }
     AST_add_child(parent_node, func_call_id, string_a(token->attribute));
     moveAhead(token, token_lookahead,dyn_string);
     if (strcmp(token->attribute, "("))
@@ -269,9 +271,18 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* dyn_stri
 int func_def(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node) {
     int result = 0;
     // token_lookahead == FUNC_ID -> zpracovat se symboltable
+    if (is_defined(symtable, token_lookahead->attribute)){
+        // redefinition of function - error
+        error(3, token_lookahead->line);
+    }
+    if (is_declared(symtable, token_lookahead->attribute)){
+        define_function(symtable, token_lookahead->attribute);
+    }
+    if (!is_declared(symtable, token_lookahead->attribute)){
+        declare_function(symtable, token_lookahead->attribute);
+        define_function(symtable, token_lookahead->attribute);
+    }
     AST_add_child(parent_node, func_def_id, string_a(token_lookahead->attribute));
-    //ast_node_t* new_parent = &parent_node->child_arr[parent_node->no_children - 1];
-    //AST_add_child(new_parent, variable_id, string_a(token->attribute));
 
     moveAhead(token, token_lookahead,dyn_string);
     moveAhead(token, token_lookahead,dyn_string);
@@ -345,6 +356,7 @@ int params(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string,
 }
 
 int func_body(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, ast_node_t* parent_node){
+    start_block(symtable);
     if (from_func_def){
         AST_add_child(parent_node, body_id, nil_a());
         from_func_def = false;
@@ -354,10 +366,12 @@ int func_body(token_t* token, token_t* token_lookahead, dynamic_string* dyn_stri
     }
     if (!strcmp(token_lookahead->attribute, "end")){
         moveAhead(token, token_lookahead,dyn_string);
+        //end_block(symtable);
         return SUCCESS;
     }
     if (token_lookahead->spec == SPEC_ELSE || token_lookahead->spec == SPEC_END){
         // epsilon rule for ending the function's body
+        //end_block(symtable);
         return SUCCESS;
     }
     // probably gonna have to add more keywords(?) checks to end while statements and others
@@ -654,6 +668,7 @@ int items(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, 
     if (token->type == TYPE_KEYWORD || token->spec == SPEC_END || token_lookahead->spec == SPEC_OPEN) // todo changed from lookahead to token
     {
         //epsilon rule
+        //end_block(symtable);
         return SUCCESS;
     }
     //moveAhead(token, token_lookahead,dyn_string);
