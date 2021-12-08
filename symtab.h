@@ -1,7 +1,7 @@
 // symtab.h by David Novák, IFJ 2021
 
-#ifndef symtab_h
-#define symtab_h
+#ifndef SYMTAB_HEADER
+#define SYMTAB_HEADER
 
 #include <stdbool.h>
 #include "datatype_t.h"
