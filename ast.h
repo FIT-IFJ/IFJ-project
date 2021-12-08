@@ -88,6 +88,13 @@ void AST_insert_root(ast_node_t **ast);
 void AST_destroy(); //todo
 
 /**
+ * @brief transformuje string do podoby pro ifjcode21
+ * @param string vstupni string
+ * @return transformovany string
+ */
+char* string_transform(char* string);
+
+/**
  * @brief vytvoří atribut se stringem.. Pro použití do
  * parametru funkcí, co vyžadují attribute_t, jako například AST_add_child()
  * @param stringg string na konverzi do atribudutu

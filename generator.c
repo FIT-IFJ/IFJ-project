@@ -376,13 +376,16 @@ void g_decl_var(ast_node_t *var_decl_node){
 int g_expression(ast_node_t *expr_node){ //todo typove kontroly
     int curr_expr_no = expr_count;
     expr_count++;
+    printf("\n");
+    printf("# generate expr no %d\n" , curr_expr_no);
+
     //vytvorim promennou pro vysledek
     printf("DEFVAR LF@$expr-res-%d\n" , curr_expr_no);
 
     //vlozim vysledek
     if (expr_node->id == constant_id) {
         if (expr_node->attribute.saved_type == string) {
-            printf("MOVE LF@$expr-res-%d string@%s\n", curr_expr_no, expr_node->attribute.name);
+            printf("MOVE LF@$expr-res-%d string@%s\n", curr_expr_no, string_transform(expr_node->attribute.name));
         } else if (expr_node->attribute.saved_type == integer) {
             printf("MOVE LF@$expr-res-%d int@%d\n", curr_expr_no, expr_node->attribute.integer);
         } else if (expr_node->attribute.saved_type == number) {
@@ -529,7 +532,7 @@ int g_expression(ast_node_t *expr_node){ //todo typove kontroly
 
                 printf("CONCAT LF@$expr-res-%d LF@$expr-res-%d LF@$expr-res-%d\n", curr_expr_no, expr1_no, expr2_no);
             } else {
-                fprintf(stderr, "generator nerozpoznal operac v g_wxpression()\n");
+                fprintf(stderr, "generator nerozpoznal operac v g_expression() - %s\n", expr_node->attribute.name);
             }
         }
     }
@@ -545,7 +548,7 @@ void g_func_call(ast_node_t *call_node){
                 printf("WRITE LF@%s\n", call_node->child_arr[i].attribute.name);
             } else { //pokud je dite konstanta
                 if (call_node->child_arr[i].attribute.saved_type == string) {
-                    printf("WRITE string@%s\n", call_node->child_arr[i].attribute.name);
+                    printf("WRITE string@%s\n", string_transform(call_node->child_arr[i].attribute.name));
                 } else if (call_node->child_arr[i].attribute.saved_type == integer) {
                     printf("WRITE int@%d\n", call_node->child_arr[i].attribute.integer);
                 } else if (call_node->child_arr[i].attribute.saved_type == number) {
@@ -562,7 +565,7 @@ void g_func_call(ast_node_t *call_node){
                 printf("PUSHS LF@%s\n", call_node->attribute.name);
             } else { //konstantu
                 if (call_node->attribute.saved_type == string) {
-                    printf("PUSHS string@%s\n", call_node->attribute.name);
+                    printf("PUSHS string@%s\n", string_transform(call_node->attribute.name));
                 } else if (call_node->attribute.saved_type == integer) {
                     printf("PUSHS int@%d\n", call_node->attribute.integer);
                 } else if (call_node->attribute.saved_type == number) {
@@ -636,42 +639,42 @@ void g_if_condition(ast_node_t *if_condition_node, int current_if_no){
             //pokud je mensi nez
             printf("LT LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
         } else if (!strcmp(if_condition_node->attribute.name, "<=")) {
             //pokud se rovna
             printf("EQ LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
             //pokud je mensi nez
             printf("LT LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
 
         } else if (!strcmp(if_condition_node->attribute.name, ">")) {
             //pokud je vetsi nez
             printf("GT LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
         } else if (!strcmp(if_condition_node->attribute.name, ">=")) {
             //pokud se rovna
             printf("EQ LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
             //pokud je vetsi nez
             printf("GT LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
 
         } else if (!strcmp(if_condition_node->attribute.name, "==")) {
             //pokud se rovna
             printf("EQ LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
         } else if (!strcmp(if_condition_node->attribute.name, "~=")) {
             //pokud se nerovna
             printf("EQ LF@$if-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_if_no, lres, rres);
-            printf("JUMPIFNEQ $if-body%d LF@$if-cond-res-%d 1\n", current_if_no, current_if_no);
+            printf("JUMPIFNEQ $if-body%d LF@$if-cond-res-%d bool@true\n", current_if_no, current_if_no);
         }
     } else { //pokud neni relacni operator
         int res = g_expression(if_condition_node);
@@ -722,54 +725,52 @@ void g_while_condition(ast_node_t *condition_node, int current_while_no){
         int lres = g_expression(&condition_node->child_arr[1]);
         int rres = g_expression(&condition_node->child_arr[0]);
 
-        printf("DEFVAR LF@$while-cond-res-%d\n", current_while_no);
 
         if (!strcmp(condition_node->attribute.name, "<")) {
             //pokud je mensi nez
             printf("LT LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
         } else if (!strcmp(condition_node->attribute.name, "<=")) {
             //pokud se rovna
             printf("EQ LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ LF@$while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ LF@$while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
             //pokud je mensi nez
             printf("LT LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
 
         } else if (!strcmp(condition_node->attribute.name, ">")) {
             //pokud je vetsi nez
             printf("GT LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
         } else if (!strcmp(condition_node->attribute.name, ">=")) {
             //pokud se rovna
             printf("EQ LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
             //pokud je vetsi nez
             printf("GT LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
 
         } else if (!strcmp(condition_node->attribute.name, "==")) {
             //pokud se rovna
             printf("EQ LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
         } else if (!strcmp(condition_node->attribute.name, "~=")) {
             //pokud se nerovna
             printf("EQ LF@$while-cond-res-%d LF@$expr-res-%d LF@$expr-res-%d\n",
                    current_while_no, lres, rres);
-            printf("JUMPIFNEQ $while-body%d LF@$while-cond-res-%d 1\n", current_while_no, current_while_no);
+            printf("JUMPIFNEQ $while-body%d LF@$while-cond-res-%d bool@true\n", current_while_no, current_while_no);
         }
     } else { //pokud neni relacni operator
         int res = g_expression(condition_node);
         //kontrola zda argumenty nejsou nil
-        printf("DEFVAR LF@$while-nil-check-%d\n", current_while_no);
-        printf("DEFVAR LF@$while-nil-check-bool-%d\n", current_while_no);
+
 
         printf("TYPE LF@$while-nil-check-%d LF@$while-expr-res-%d\n", current_while_no, res);
         printf("EQ LF@$while-nil-check-bool-%d LF@$while-nil-check-%d string@nil\n", current_while_no, current_while_no);
@@ -784,11 +785,15 @@ void g_while(ast_node_t *while_node){
     const int curr_while_no = while_count;
     while_count++;
     printf("# while - zacatek\n");
-    printf("JUMP $while-cond"); //zkontroluje podminku
+    printf("JUMP $while-cond%d\n", curr_while_no); //zkontroluje podminku
 
     printf("LABEL $while-body%d\n", curr_while_no);
     g_body(&while_node->child_arr[1]);
 
+
+    printf("DEFVAR LF@$while-cond-res-%d\n", curr_while_no);
+    printf("DEFVAR LF@$while-nil-check-%d\n", curr_while_no);
+    printf("DEFVAR LF@$while-nil-check-bool-%d\n", curr_while_no);
 
     printf("LABEL $while-cond%d\n", curr_while_no);
     g_while_condition(&while_node->child_arr[0], curr_while_no);
