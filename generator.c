@@ -554,7 +554,7 @@ void g_func_call(ast_node_t *call_node){
                 } else if (call_node->child_arr[i].attribute.saved_type == number) {
                     printf("WRITE float@%a\n", call_node->child_arr[i].attribute.number);
                 } else if (call_node->child_arr[i].attribute.saved_type == nil) {
-                    printf("WRITE nil@nil\n");
+                    printf("WRITE string@nil\n");
                 }
             }
         }
