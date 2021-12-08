@@ -16,7 +16,6 @@
 #include "symtab.h"
 #include "parser.h"
 #include "precedence_parser.h"
-#include "generator.h"
 
 
 #define SUCCESS 1
@@ -34,14 +33,13 @@ int main(){
     symtable = symtab_create();
     start_block(symtable);
     AST_insert_root(&AST);
-    printf("-- PARSING STARTED --\n");
+    //printf("-- PARSING STARTED --\n");
     int result = program(new_token, new_token_lookahead, dyn_string, AST);
     int syntax_control_result = result ? 0 : 1;
     //printf("[STATUS CODE OF THE PARSING: %d]\n", syntax_control_result);
     if (!syntax_control_result) {
-        printf("Syntax control successful.\n");
+        //printf("Syntax control successful.\n");
     }
-    g_program(AST);
     return 0;
 }
 void moveAhead(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string){
@@ -451,11 +449,10 @@ int while_element(token_t* token, token_t* token_lookahead, dynamic_string* dyn_
         error(2, token->line);
     }
     AST_connect_DLL(&parent_node->child_arr[parent_node->no_children - 1], AST_list);
-    printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
+    //printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
-    printf("PROBEHLA USPESNA DEALOKACE\n");
     get_token(token_lookahead,dyn_string);
     if (token->spec != SPEC_DO)
     {
@@ -592,7 +589,7 @@ int item(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, a
     //    vraceny_token = vraceny_token->next;
     //}
     AST_connect_DLL(parent_node, AST_list);
-    printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
+    //printf("== vrácený token: %s ==\n", vraceny_token->token->attribute);
     *token = *vraceny_token->token;
     DLL_Dispose(list);
     free(list);
