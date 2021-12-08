@@ -11,26 +11,6 @@
 
 #define NUM_OF_SYMB 17
 
-char pp_table[NUM_OF_SYMB][NUM_OF_SYMB]={ 
-  /*            +     -     *     /     //    <    <=     >    >=    ==    ~=    ..     #     i     (     )     $   */
-  /*  +  */   {'>',  '>',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },  // +,-
-  /*  -  */   {'>',  '>',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  *  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },  // *,/,//
-  /*  /  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  // */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  <  */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },   // <,..,~=
-  /*  <= */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  >  */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  >= */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  == */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  ~= */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
-  /*  .. */   {'_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '<',  '_',  '<',  '<',  '>',  '>'  },
-  /*  #  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '<',  '_',  '<',  '<',  '>',  '>'  }, // !!!???????
-  /*  i  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '_',  '_',  '>',  '>'  },
-  /*  (  */   {'<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '=',  '_'  },
-  /*  )  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '_',  '_',  '>',  '>'  },
-  /*  $  */   {'<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '_',  '#'  } // # .. exp ok
-};
 
 // struktury pre zasobnik
 typedef struct pp_stack_element{
@@ -267,7 +247,7 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pra
             /* rule 8: [ E -> E > E ] */
             case SPEC_GREA:
 
-            /* rule 9: [ E -> E > E ] */
+            /* rule 9: [ E -> E >= E ] */
             case SPEC_GREQ:
                 // spravanie dat. typov pri '<','<=','>','>=': int < int = bool, int < dec = bool, dec < dec = bool, string < string = bool, else error
                 *nont_token = *token[0];
@@ -320,13 +300,13 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pra
                 break;
         }
         
-        printf("( %i.)  E -> E %s E\n",token[1]->spec, token[1]->attribute);    ///
+        // printf("( %i.)  E -> E %s E\n",token[1]->spec, token[1]->attribute);    ///
         DLL_InsertLast(AST_list,token[1]);
     }
     /* rule 13:  [ E -> # E ] */
     else if ( token[0]->spec ==  SPEC_EMPTY && token[1]->spec == SPEC_HASH && token[2]->spec == SPEC_NONT)
     {
-        printf("( %i.)  E -> %s E\n",token[1]->spec, token[1]->attribute);      ///
+        //printf("( %i.)  E -> %s E\n",token[1]->spec, token[1]->attribute);      ///
         DLL_InsertLast(AST_list,token[1]);
         *nont_token = *token[2];
         if (token[2]->type == TYPE_STRING)
@@ -337,7 +317,7 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pra
     /* rule 14:  [ E -> i ] */
     else if (token[0]->spec == SPEC_EMPTY && token[1]->spec == SPEC_EMPTY && token[2]->spec == SPEC_IDOP)
     {
-        printf("( %i.)  E -> '%s' \n",token[2]->spec, token[2]->attribute);     ///
+        //printf("( %i.)  E -> '%s' \n",token[2]->spec, token[2]->attribute);     ///
         DLL_InsertLast(AST_list,token[2]);
 
         *nont_token = *token[2];
@@ -354,7 +334,7 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pra
     /* rule 15:  [ E -> ( E ) ] */
     else if (token[0]->spec == SPEC_OPEN && token[1]->spec == SPEC_NONT && token[2]->spec == SPEC_CLOS)
     {
-        printf("( 15.)  E -> ( E )\n");     ///
+        //printf("( 15.)  E -> ( E )\n");     ///
         *nont_token = *token[1];
     }
     else
@@ -438,6 +418,29 @@ void DLL_print(DLList *AST_list)    // for debug
  */
 int parse_expression (DLList *list, DLList *AST_list)
 {
+
+    char pp_table[NUM_OF_SYMB][NUM_OF_SYMB]={ 
+    /*            +     -     *     /     //    <    <=     >    >=    ==    ~=    ..     #     i     (     )     $   */
+    /*  +  */   {'>',  '>',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  -  */   {'>',  '>',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  *  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  /  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  // */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  <  */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  <= */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  >  */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  >= */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  == */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  ~= */   {'<',  '<',  '<',  '<',  '<',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '<',  '<',  '<',  '>',  '>'  },
+    /*  .. */   {'_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',  '<',  '_',  '<',  '<',  '>',  '>'  },
+    /*  #  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '<',  '_',  '<',  '<',  '>',  '>'  }, // !!!???????
+    /*  i  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '_',  '_',  '>',  '>'  },
+    /*  (  */   {'<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '=',  '_'  },
+    /*  )  */   {'>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '>',  '_',  '_',  '_',  '>',  '>'  },
+    /*  $  */   {'<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '<',  '_',  '#'  } 
+    };
+
+
     int ret_code;
     pp_stack *stack = (pp_stack*) malloc(sizeof(pp_stack));
     token_t* token = malloc(sizeof(token_t));
@@ -460,8 +463,8 @@ int parse_expression (DLList *list, DLList *AST_list)
     {
         stack_n = (stack_top_term(stack))->spec; //// stack_token = stack_top_term(stack); 
 
-        print_stack(stack); //for debug
-        printf("\n[stack: %d '%s']  vs  [token: %d '%s']\n\ntable symbol [%c]\n\n",stack_n,(stack_top_term(stack))->attribute,token->spec,token->attribute,pp_table[stack_n][token->spec]); // for debug
+        //print_stack(stack); //for debug
+        //printf("\n[stack: %d '%s']  vs  [token: %d '%s']\n\ntable symbol [%c]\n\n",stack_n,(stack_top_term(stack))->attribute,token->spec,token->attribute,pp_table[stack_n][token->spec]); // for debug
 
         switch (pp_table[stack_n][token->spec])
         {
@@ -484,7 +487,7 @@ int parse_expression (DLList *list, DLList *AST_list)
 
         case '#':
             ret_code = (stack_top(stack))->token->type;
-            printf("***** TYPE: %d *****\n",ret_code);
+            //printf("***** TYPE: %d *****\n",ret_code);
             stack_dispose(stack);
             free(token);
             free(stack);
@@ -576,14 +579,14 @@ int DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_
     }
     if (pp_list->last != NULL)
     {
-        printf("\n_____________________________PP_PARSER________________________________\n");
+        //printf("\n_____________________________PP_PARSER________________________________\n");
         token->spec = SPEC_DOLR;
         token->attribute = "$";
         token->line = -1;
         DLL_InsertLast( pp_list, token);
         ret_code = parse_expression(pp_list, AST_list);      //docasny vypis pre znazornenie prace PSA parseru
-        DLL_print(AST_list);            // for debug
-        printf("\n____________________________MAIN_PARSER_______________________________\n");
+        //DLL_print(AST_list);            // for debug
+        //printf("\n____________________________MAIN_PARSER_______________________________\n");
     }
     DLL_Dispose(pp_list);               // vymazanie pp_listu po tom ako su vyrazy spracovane
     free(pp_list);
@@ -621,7 +624,7 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
     do
     {
         get_token(token,string);
-        printf("\n---> '%s',%d,%d\n",token->attribute,token->type,token->spec);   // cinnost parseru
+        //printf("\n---> '%s',%d,%d\n",token->attribute,token->type,token->spec);   // cinnost parseru
 
         if (token->spec == SPEC_RETURN || token->spec == SPEC_IF || token->spec == SPEC_WHILE || token->type == TYPE_ASSIGNMENT) // Tejd si sam triedi
         {
@@ -633,7 +636,7 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
                 element = list->first;
                 while(element != NULL)      // v liste sa nachadza omylom ukradnuty token pre parser
                 {
-                    printf("\n---> '%s',%d,%d\n*TYPE %d*\n",element->token->attribute,element->token->type,element->token->spec,type_code);    // cinnost parseru
+                    //printf("\n---> '%s',%d,%d\n*TYPE %d*\n",element->token->attribute,element->token->type,element->token->spec,type_code);    // cinnost parseru
                     if (element->token->spec == SPEC_RETURN || element->token->spec == SPEC_IF || element->token->spec == SPEC_WHILE || strcmp(element->token->attribute,",") == 0) // moze obsahovat "keyword","datatype","identifier"
                         goto again;
                     element = element->next;//
@@ -654,10 +657,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-/*
+///*
 int main()
 {
     return parser();
 }
-*/
+//*/
 
