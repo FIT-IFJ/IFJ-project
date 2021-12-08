@@ -13,6 +13,7 @@
 #include "scanner.h"
 #endif
 
+#include "symtab.h"
 #include "parser.h"
 #include "precedence_parser.h"
 
@@ -654,14 +655,15 @@ int decl_element(token_t* token, token_t* token_lookahead, dynamic_string* strin
 }
 
 int decl_assign(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
-    AST_add_child(parent_node, assign_id, nil_a());
+    //AST_add_child(parent_node, assign_id, nil_a());
     moveAhead(token, token_lookahead, string);
     if (token->type != TYPE_ASSIGNMENT)
     {
         error(2, token->line);
     }
     // PC
-    return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
+    //return item(token, token_lookahead, string, &parent_node->child_arr[parent_node->no_children - 1]);
+    return item(token, token_lookahead, string, parent_node);
 }
 
 int R_assignment(token_t* token, token_t* token_lookahead, dynamic_string* string, ast_node_t* parent_node){
