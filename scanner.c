@@ -337,16 +337,21 @@ void string_token(token_t *new_token,dynamic_string *string)
         }
         // escape sekvence ze zadani
         else if (new_char == 92) {
-            string_add_char(string, new_char);
             new_char = getchar();
             switch (new_char)
             {
             // validni sekvence
             case 110:
+                string_add_char(string, 10);
+                break;
             case 116:
+                string_add_char(string, 9);
+                break;
             case 34:
+                string_add_char(string, 34);
+                break;
             case 92:
-                string_add_char(string, new_char);
+                string_add_char(string, 92);
                 break;
             // obecna escape sekvence
             case '0' ... '2':
