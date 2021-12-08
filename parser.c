@@ -227,7 +227,6 @@ int constants(token_t* token, token_t* token_lookahead, dynamic_string* dyn_stri
     }
     moveAhead(token, token_lookahead,dyn_string);
     if (strcmp(token->attribute, ",")){
-        report_error("expected comma", token->line);
         error(2, token->line);
     }
     moveAhead(token, token_lookahead,dyn_string);
@@ -315,7 +314,6 @@ int params(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string,
     }
     moveAhead(token, token_lookahead,dyn_string);
     if (strcmp(token->attribute, ",")){
-        report_error("expected comma", token->line);
         error(2, token->line);
     }
     moveAhead(token, token_lookahead,dyn_string);
@@ -533,7 +531,6 @@ int args(token_t* token, token_t* token_lookahead, dynamic_string* dyn_string, a
     }
     moveAhead(token, token_lookahead,dyn_string);
     if (strcmp(token->attribute, ",") != 0){
-        report_error("expected comma", token->line);
         error(2, token->line);
     }
     // now I am working with the CONSTANT or ID
