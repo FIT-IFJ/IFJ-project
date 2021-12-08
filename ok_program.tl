@@ -1,6 +1,6 @@
 require "ifj21"
 function helloworld()
-print("Hello World")
+write("Hello World")
 end
 
 function main()
