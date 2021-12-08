@@ -6,6 +6,10 @@
 /*  Upravy: Tym 102                                                           */
 /* ************************************************************************** */
 
+#ifndef DYNAMIC_STRING_HEADER
+#define DYNAMIC_STRING_HEADER
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,3 +30,5 @@ void string_add_char(dynamic_string *s, char d);
 char* string_get(dynamic_string* s);
 // Vymazu obsah retezce
 void string_delete(dynamic_string *s);
+
+#endif

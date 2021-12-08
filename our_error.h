@@ -24,7 +24,10 @@
  * @param line Řádek, na kterém chyba nastala.
  */
 
+#ifndef ERROR_HEADER
+#define ERROR_HEADER
+
 void error(int err_code, int line);
 
-
+#endif
 

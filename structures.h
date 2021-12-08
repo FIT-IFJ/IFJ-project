@@ -7,15 +7,14 @@
 /* ************************************************************************** */
 
 
+#ifndef STRUCTURES_HEADER
+#define STRUCTURES_HEADER
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-#ifndef SCANNER_H
-#define SCANNER_H
 #include "scanner.h"
-#endif
 
 #include "our_error.h"
 
@@ -42,3 +41,5 @@ void DLL_InsertLast( DLList *list, token_t *token );
 void DLL_DeleteFirst( DLList *list );
 void DLL_DeleteLast( DLList *list );
 void DLL_Dispose( DLList *list );
+
+#endif

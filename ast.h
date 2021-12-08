@@ -1,8 +1,17 @@
-#ifndef ast_h
-#define ast_h
+/* ******************* ast.h ************************************************ */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Hlavickovy soubor k ast.c                                           */
+/*  Vytvoril: Tym 102 - David Novak, prosinec 2021                            */
+/* ************************************************************************** */
+
+#ifndef AST_HEADER
+#define AST_HEADER
 
 #include <stdbool.h>
 #include "datatype_t.h"
+#include "structures.h"
+
 
 /**
  * Id/typ nody ast. Podle toho generato pozna, kterou konstrukci dany node reprezentuje, jaky ma ocekavat atribut a
@@ -35,7 +44,6 @@ typedef struct attribute{
     double number;
     int integer;
     bool nil;
-    datatype_t type;
 } attribute_t;
 
 /**
@@ -117,5 +125,12 @@ attribute_t integer_a(int integerr);
  * @param attribute atribut nody, vutvoreny funkci integer_a, number_a, string_a nebo nil_a
  */
 void AST_add_child(ast_node_t *parent, node_id_t id, attribute_t attribute);
+
+/**
+ * @brief Pripoji DLList jako nove dite k parentovi, podobne jako AST_add_child
+ * @param parent ukazatel na rodice, kteremu mame pridat dite-DLL
+ * @param dll - DLList
+ */
+void AST_connect_DLL(ast_node_t *parent, DLList *dll);
 
 #endif

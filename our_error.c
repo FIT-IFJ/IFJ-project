@@ -38,43 +38,33 @@ void error(int err_code, int line) {
             case 1:
                 fprintf(stderr, "chyba v programu v rámci lexikální analýzy (chybná struktura aktuálního lexému)\n");
                 exit(1);
-                break;
             case 2:
                 fprintf(stderr, "chyba v programu v rámci syntaktické analýzy (chybná syntaxe programu)\n");
                 exit(2);
-                break;
             case 3:
                 fprintf(stderr, "sémantická chyba v programu – nedefinovaná funkce/proměnná, pokus o redefinici proměnné, atp.\n");
                 exit(3);
-                break;
             case 4:
                 fprintf(stderr, "sémantická chyba v příkazu přiřazení (typová nekompatibilita)\n");
                 exit(4);
-                break;
             case 5:
                 fprintf(stderr, "sémantická chyba v programu – špatný počet/typ parametrů či návratových hodnotu volání funkce či návratu z funkce\n");
                 exit(5);
-                break;
             case 6:
                 fprintf(stderr, "sémantická chyba typové kompatibility v aritmetických, řetězcových a relačních výrazech\n");
                 exit(6);
-                break;
             case 7:
                 fprintf(stderr, "ostatní sémantická chyba\n");
                 exit(7);
-                break;
             case 8:
                 fprintf(stderr, "běhová chyba při práci s neočekávanou hodnotou nil\n");
                 exit(8);
-                break;
             case 9:
                 fprintf(stderr, "běhová chyba celočíselného dělení nulovou konstantou\n");
                 exit(9);
-                break;
             default:
                 fprintf(stderr, "nedefinovaná návratová hodnota chyby, posíláš funkci error něco, co nemáš\n");
                 exit(-1);
-                break;
         }
     }
 }
