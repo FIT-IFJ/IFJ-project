@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "dynamic_string.h"
+#include "our_error.h"
 
 typedef enum {
     // datove typy (aj ako navratove hodnoty z PP pri kontrole typu)
@@ -71,7 +72,7 @@ typedef enum {
     SPEC_THEN, 
     SPEC_WHILE,
 
-    // DATATYPE
+    // DATATYPES
     SPEC_NUMBER,
     SPEC_INTEGER,
     SPEC_NIL,
