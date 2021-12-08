@@ -1,5 +1,9 @@
-// symtab.h by David Novák, IFJ 2021
-
+/* ******************* symtab.h  ******************************************** */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Hlavickovy soubor k tabulce symbolu                                 */
+/*  Vytvoril: Tym 102 - David Novak, listopad 2021                            */
+/* ************************************************************************** */
 #ifndef SYMTAB_HEADER
 #define SYMTAB_HEADER
 

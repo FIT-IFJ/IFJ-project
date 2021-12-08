@@ -1,10 +1,11 @@
+/* ******************* generator.c ****************************************** */
+/*  Predmet: IFJ + IAL - FIT VUT Brno                                         */
+/*  Projekt: Implementace prekladace imperativniho jazyka IFJ2021             */
+/*  Cast: Soubor s implementaci generatoru, ktery z abstraktniho stromu       */
+/*        vygeneruje cilovy kod                                               */
+/*  Vytvoril: Tym 102 - David Novak, prosinec 2021                            */
+/* ************************************************************************** */
 
-
-
-
-///==================================================================
-// GENERATOR
-///==================================================================
 #include "generator.h"
 
 int while_count = 0;
