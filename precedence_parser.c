@@ -24,13 +24,14 @@ typedef struct pp_stack{
 } pp_stack;
 
 
-symtab_t* sym_table;        // extern symtab_t* sym_table;  ??
+symtab_t* symtable;        // extern symtab_t* sym_table;  ??
 
 
 void stack_init(pp_stack* stack)
 {
     stack->top_element = NULL;
 }
+
 
 
 void stack_push(pp_stack* stack, token_t* token)     // pushne token_n, napr. pre '='
@@ -120,7 +121,9 @@ void stack_dispose(pp_stack* stack)
 }
 
 
-void push_nont(pp_stack* stack, token_t* nont_token)
+
+
+void push_nont(pp_stack* stack, token_t* nont_token) // vlozi nonterminal 'E'
 { 
     token_t* token = malloc(sizeof(token_t));
     if (token == NULL)
@@ -134,9 +137,16 @@ void push_nont(pp_stack* stack, token_t* nont_token)
 }
 
 
+
+/**
+ * @brief Funkcia je zavolana po vycitani znaku '>' z tabulky, to znamena, ze na vrchu zasobniku sa nachadza prava strana pravidla, ktore sa moze redukovat.
+ * Funkcia zaroven spracuva semantiku typovania a delenia nulou.
+ * 
+ * @param stack Ukazatel na inicializovanu strukturu zasobniku, vyuzivanu pri precedencii
+ * @param AST_list Ukazatel na inicializovanu DLL strukturu, cez ktoru parser preda generatoru rozparsovany a skontrolovany vyraz (postfix).
+ */
 void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pravidla
 {
-    //int nont_type;
     token_t* nont_token = malloc(sizeof(token_t));
     if ( nont_token == NULL )
         error(99, 0);
@@ -323,8 +333,8 @@ void reduce(pp_stack* stack,DLList* AST_list) // prevedie redukciu '>' podla pra
         *nont_token = *token[2];
         if ( token[2]->type == TYPE_IDENTIFIER )
             {
-                if (sym_table != NULL)
-                    nont_token->type = get_var_datatype(sym_table, token[2]->attribute);
+                if (symtable != NULL)
+                    nont_token->type = get_var_datatype(symtable, token[2]->attribute);
                 else
                     nont_token->type = TYPE_INTEGER;    //// !!!!!!!! symtable instead - do not forget to delete this
             }
@@ -380,18 +390,6 @@ void print_stack(pp_stack* stack)   // for debug
     free(list);
 }
 
-
-void DLL_fill(DLList *list, token_t *token, dynamic_string *string) // for debug - not used already
-{
-    do
-    {
-        get_token(token,string);
-        DLL_InsertLast(list, token);
-        printf("inserted[%s]\n", token->attribute);
-
-    }while (token->type != TYPE_EOF);
-    list->last->token->spec = SPEC_DOLR;
-}
 
 
 void DLL_print(DLList *AST_list)    // for debug
@@ -600,10 +598,13 @@ int DLL_parse(DLList *list, token_t *token, dynamic_string *string, DLList *AST_
 
 
 
+
+
+
+
+
+
 // **************************************************************************
-
-//                       TOTO VLOZ DO HLAVNEHO PARSERU
-
 
 // **************************************************************************
 
@@ -657,10 +658,10 @@ int parser()  // tento main uz znazornuje pracu parseru a mal by robit (ale nero
 
 
 //  ODKOMENTUJ PRE TESTOVANIE
-///*
+/*
 int main()
 {
     return parser();
 }
-//*/
+*/
 
