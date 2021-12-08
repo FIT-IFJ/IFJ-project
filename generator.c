@@ -783,16 +783,3 @@ void g_while(ast_node_t *while_node){
     g_while_condition(&while_node->child_arr[0], curr_while_no);
     //pokud condition true, vyskoci na na while-body
 }
-
-
-
-
-int main() {
-    ast_node_t *ast;
-    AST_insert_root(&ast);
-    //ast_node_t *stashed_node = ast;
-
-    g_ord();
-
-    return 1;
-}
